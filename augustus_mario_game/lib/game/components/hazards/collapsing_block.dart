@@ -1,0 +1,85 @@
+import 'dart:math';
+import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
+import 'hazard_base.dart';
+import '../../game_constants.dart';
+
+class CollapsingBlock extends HazardBase {
+  final Vector2 _initialPosition;
+  double _shakeTimer = 0.0;
+  bool _isTriggered = false;
+  bool _isFalling = false;
+  double _fallSpeed = 0.0;
+  final Random _rng = Random();
+
+  CollapsingBlock({
+    required Vector2 position,
+    required Vector2 size,
+    super.hazardId,
+  })  : _initialPosition = position.clone(),
+        super(position: position, size: size) {
+    isDeadly = false; // Initially acts as a platform, not deadly until falling/crumbling
+    add(RectangleHitbox());
+  }
+
+  @override
+  void trigger() {
+    if (!_isTriggered) {
+      _isTriggered = true;
+      _shakeTimer = 0.20; // 0.2 second warning before falling
+    }
+  }
+
+  @override
+  void reset() {
+    position.setFrom(_initialPosition);
+    _isTriggered = false;
+    _isFalling = false;
+    _shakeTimer = 0.0;
+    _fallSpeed = 0.0;
+    isDeadly = false;
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (_isTriggered && !_isFalling) {
+      _shakeTimer -= dt;
+      // Slight shake
+      position.x = _initialPosition.x + (_rng.nextDouble() * 4 - 2);
+      if (_shakeTimer <= 0) {
+        _isFalling = true;
+        isDeadly = true; // Deadly while plunging down
+      }
+    } else if (_isFalling) {
+      _fallSpeed += 1200 * dt;
+      position.y += _fallSpeed * dt;
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+
+    // Looks identical to a solid platform, but slightly cracked if triggered
+    final rect = Rect.fromLTWH(0, 0, width, height);
+    final basePaint = Paint()..color = GameConstants.tileColor;
+    canvas.drawRect(rect, basePaint);
+
+    final borderPaint = Paint()
+      ..color = _isTriggered ? const Color(0xFFE06C75) : GameConstants.tileBorderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    canvas.drawRect(rect, borderPaint);
+
+    if (_isTriggered) {
+      // Crack lines
+      final crackPaint = Paint()
+        ..color = const Color(0xFFE06C75)
+        ..strokeWidth = 1.5;
+      canvas.drawLine(Offset(width * 0.2, 0), Offset(width * 0.4, height), crackPaint);
+      canvas.drawLine(Offset(width * 0.4, height * 0.5), Offset(width * 0.8, height * 0.2), crackPaint);
+    }
+  }
+}
