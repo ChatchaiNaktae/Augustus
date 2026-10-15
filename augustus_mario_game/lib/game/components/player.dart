@@ -68,6 +68,9 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
 
   void shoot() {
     if (!isAlive) return;
+    final bulletsCount = parent?.children.whereType<Bullet>().length ?? 0;
+    if (bulletsCount >= GameConstants.maxBulletsOnScreen) return;
+
     final bulletDir = facingRight ? 1.0 : -1.0;
     final spawnPos = Vector2(
       facingRight ? position.x + width + 2 : position.x - 6,
@@ -98,9 +101,60 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     _jumpBufferTimer = 0.0;
   }
 
+  List<PlatformBlock> _getBlocks() {
+    final stage = game.currentStage;
+    if (stage != null && stage.platforms.isNotEmpty) {
+      return stage.platforms;
+    }
+    final List<PlatformBlock> list = [];
+    if (stage != null) {
+      list.addAll(stage.children.whereType<PlatformBlock>());
+    }
+    if (parent != null && parent != stage) {
+      list.addAll(parent!.children.whereType<PlatformBlock>());
+    }
+    return list;
+  }
+
+  List<CollapsingBlock> _getCollapsingBlocks() {
+    final stage = game.currentStage;
+    if (stage != null && stage.collapsingPlatforms.isNotEmpty) {
+      return stage.collapsingPlatforms;
+    }
+    final List<CollapsingBlock> list = [];
+    if (stage != null) {
+      list.addAll(stage.children.whereType<CollapsingBlock>());
+    }
+    if (parent != null && parent != stage) {
+      list.addAll(parent!.children.whereType<CollapsingBlock>());
+    }
+    return list;
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
+    if (!isAlive) return;
+
+    // Clamp dt to avoid tunneling during lag spikes or initial frame
+    final clampedDt = dt.clamp(0.0, 0.033);
+
+    // Sub-step physics if dt is large enough to ensure collision precision
+    if (clampedDt > 0.016) {
+      final halfDt = clampedDt / 2;
+      _updatePhysics(halfDt);
+      if (isAlive) _updatePhysics(halfDt);
+    } else {
+      _updatePhysics(clampedDt);
+    }
+
+    // Fall out of screen = death
+    if (position.y > GameConstants.gameHeight + 40) {
+      die();
+    }
+  }
+
+  void _updatePhysics(double dt) {
     if (!isAlive) return;
 
     // Horizontal Movement (Zero latency)
@@ -142,16 +196,11 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
 
     // Move & resolve collisions with solid blocks
     _moveWithCollisions(dt);
-
-    // Fall out of screen = death
-    if (position.y > GameConstants.gameHeight + 40) {
-      die();
-    }
   }
 
   void _moveWithCollisions(double dt) {
-    final blocks = parent?.children.whereType<PlatformBlock>().toList() ?? [];
-    final collapsingBlocks = parent?.children.whereType<CollapsingBlock>().toList() ?? [];
+    final blocks = _getBlocks();
+    final collapsingBlocks = _getCollapsingBlocks();
 
     // Horizontal pass
     position.x += velocity.x * dt;
@@ -160,12 +209,15 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     for (final block in blocks) {
       final blockRect = block.toRect();
       if (playerRectX.overlaps(blockRect)) {
-        if (velocity.x > 0) {
-          position.x = blockRect.left - width;
-        } else if (velocity.x < 0) {
-          position.x = blockRect.right;
+        // Only block horizontally if player vertically overlaps the block (avoids floor treated as wall)
+        if (playerRectX.bottom > blockRect.top + 1.0 && playerRectX.top < blockRect.bottom - 1.0) {
+          if (velocity.x > 0) {
+            position.x = blockRect.left - width;
+          } else if (velocity.x < 0) {
+            position.x = blockRect.right;
+          }
+          velocity.x = 0;
         }
-        velocity.x = 0;
       }
     }
 
@@ -178,15 +230,18 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     for (final block in blocks) {
       final blockRect = block.toRect();
       if (playerRectY.overlaps(blockRect)) {
-        if (velocity.y > 0) {
-          // Landing on block
-          position.y = blockRect.top - height;
-          velocity.y = 0;
-          isOnGround = true;
-        } else if (velocity.y < 0) {
-          // Ceiling hit
-          position.y = blockRect.bottom;
-          velocity.y = 0;
+        // Only land/ceiling if player horizontally overlaps the block (avoids wall sliding treated as floor)
+        if (playerRectY.right > blockRect.left + 1.0 && playerRectY.left < blockRect.right - 1.0) {
+          if (velocity.y > 0) {
+            // Landing on block
+            position.y = blockRect.top - height;
+            velocity.y = 0;
+            isOnGround = true;
+          } else if (velocity.y < 0) {
+            // Ceiling hit
+            position.y = blockRect.bottom;
+            velocity.y = 0;
+          }
         }
       }
     }
@@ -195,7 +250,10 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     for (final cBlock in collapsingBlocks) {
       final cRect = cBlock.toRect();
       if (playerRectY.overlaps(cRect)) {
-        if (velocity.y > 0 && position.y + height - velocity.y * dt <= cRect.top + 8) {
+        if (playerRectY.right > cRect.left + 1.0 &&
+            playerRectY.left < cRect.right - 1.0 &&
+            velocity.y > 0 &&
+            position.y + height - velocity.y * dt <= cRect.top + 8) {
           position.y = cRect.top - height;
           velocity.y = 0;
           isOnGround = true;
@@ -214,6 +272,16 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       die();
     } else if (other is TriggerZone) {
       other.activate();
+    }
+  }
+
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+    if (!isAlive) return;
+
+    if (other is HazardBase && other.isDeadly) {
+      die();
     }
   }
 

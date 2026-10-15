@@ -2,10 +2,25 @@ import 'package:flutter/material.dart';
 import '../iwbtg_game.dart';
 import '../../theme/retro_theme.dart';
 
-class VirtualControlsOverlay extends StatelessWidget {
+class VirtualControlsOverlay extends StatefulWidget {
   final IWBTGGame game;
 
   const VirtualControlsOverlay({super.key, required this.game});
+
+  @override
+  State<VirtualControlsOverlay> createState() => _VirtualControlsOverlayState();
+}
+
+class _VirtualControlsOverlayState extends State<VirtualControlsOverlay> {
+  bool _leftPressed = false;
+  bool _rightPressed = false;
+
+  void _updateMovement() {
+    double move = 0.0;
+    if (_leftPressed) move -= 1.0;
+    if (_rightPressed) move += 1.0;
+    widget.game.player?.setMoveInput(move);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,14 +38,26 @@ class VirtualControlsOverlay extends StatelessWidget {
             children: [
               _TouchButton(
                 icon: Icons.arrow_back_ios_new_rounded,
-                onDown: () => game.player?.setMoveInput(-1.0),
-                onUp: () => game.player?.setMoveInput(0.0),
+                onDown: () {
+                  _leftPressed = true;
+                  _updateMovement();
+                },
+                onUp: () {
+                  _leftPressed = false;
+                  _updateMovement();
+                },
               ),
               const SizedBox(width: 12),
               _TouchButton(
                 icon: Icons.arrow_forward_ios_rounded,
-                onDown: () => game.player?.setMoveInput(1.0),
-                onUp: () => game.player?.setMoveInput(0.0),
+                onDown: () {
+                  _rightPressed = true;
+                  _updateMovement();
+                },
+                onUp: () {
+                  _rightPressed = false;
+                  _updateMovement();
+                },
               ),
             ],
           ),
@@ -41,7 +68,7 @@ class VirtualControlsOverlay extends StatelessWidget {
             bgColor: RetroTheme.primary.withValues(alpha: 0.85),
             borderColor: Colors.white,
             size: 52,
-            onDown: () => game.respawnPlayer(),
+            onDown: () => widget.game.respawnPlayer(),
           ),
 
           // Action Buttons: Shoot & Jump
@@ -54,7 +81,13 @@ class VirtualControlsOverlay extends StatelessWidget {
                 textColor: Colors.black,
                 size: 58,
                 fontSize: 10,
-                onDown: () => game.player?.shoot(),
+                onDown: () {
+                  if (widget.game.player?.isAlive == false) {
+                    widget.game.respawnPlayer();
+                  } else {
+                    widget.game.player?.shoot();
+                  }
+                },
               ),
               const SizedBox(width: 14),
               _TouchButton(
@@ -63,8 +96,14 @@ class VirtualControlsOverlay extends StatelessWidget {
                 textColor: Colors.black,
                 size: 68,
                 fontSize: 12,
-                onDown: () => game.player?.pressJump(),
-                onUp: () => game.player?.releaseJump(),
+                onDown: () {
+                  if (widget.game.player?.isAlive == false) {
+                    widget.game.respawnPlayer();
+                  } else {
+                    widget.game.player?.pressJump();
+                  }
+                },
+                onUp: () => widget.game.player?.releaseJump(),
               ),
             ],
           ),

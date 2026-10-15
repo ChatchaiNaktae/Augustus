@@ -20,6 +20,7 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
   int _deathCount = 0;
   String _currentStageName = "STAGE 1";
   bool _showVirtualControls = true;
+  bool _isPlayerDead = false;
 
   @override
   void initState() {
@@ -34,6 +35,9 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
       },
       onVictoryTriggered: () {
         if (mounted) _showVictoryDialog();
+      },
+      onPlayerStateChanged: (isDead) {
+        if (mounted) setState(() => _isPlayerDead = isDead);
       },
     );
   }
@@ -196,6 +200,7 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
           Positioned.fill(
             child: GameWidget<IWBTGGame>(
               game: _game,
+              autofocus: true,
             ),
           ),
 
@@ -213,6 +218,42 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
           // Mobile / Virtual Controls Overlay (if enabled)
           if (_showVirtualControls)
             VirtualControlsOverlay(game: _game),
+
+          // Game Over / Tap to Retry Overlay (shown only when dead)
+          if (_isPlayerDead)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _game.respawnPlayer(),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "GAME OVER",
+                          style: RetroTheme.titleStyle(fontSize: 34, color: RetroTheme.primary),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: RetroTheme.pixelBoxDecoration(
+                            fillColor: const Color(0xEE1E222D),
+                            borderColor: RetroTheme.yellow,
+                            borderWidth: 2,
+                          ),
+                          child: Text(
+                            "PRESS [R] OR TAP ANYWHERE TO RETRY",
+                            style: RetroTheme.pixelText(fontSize: 13, color: RetroTheme.yellow),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'game_constants.dart';
 import 'components/player.dart';
+import 'components/bullet.dart';
+import 'components/blood_particle.dart';
 import 'stages/stage_base.dart';
 import 'stages/stage_1_orchard.dart';
 import 'stages/stage_2_spikes.dart';
@@ -15,6 +17,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   final void Function(int deaths)? onDeathsUpdated;
   final void Function(int stage, String name)? onStageUpdated;
   final VoidCallback? onVictoryTriggered;
+  final void Function(bool isDead)? onPlayerStateChanged;
 
   int currentStageIndex = 1;
   int deathCount = 0;
@@ -29,6 +32,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     this.onDeathsUpdated,
     this.onStageUpdated,
     this.onVictoryTriggered,
+    this.onPlayerStateChanged,
   }) {
     currentStageIndex = initialStage;
   }
@@ -49,12 +53,12 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     currentStageIndex = stageNumber;
 
     // Remove existing stage and player if present
-    if (player != null && player!.isMounted) {
-      player!.removeFromParent();
-    }
-    if (currentStage != null && currentStage!.isMounted) {
-      currentStage!.removeFromParent();
-    }
+    player?.removeFromParent();
+    currentStage?.removeFromParent();
+
+    // Clean up bullets and blood particles from previous run
+    world.children.whereType<BloodParticleSystem>().forEach((b) => b.removeFromParent());
+    world.children.whereType<Bullet>().forEach((b) => b.removeFromParent());
 
     // Instantiate selected stage
     switch (stageNumber) {
@@ -81,6 +85,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     player = Player(initialPosition: spawn);
     await world.add(player!);
 
+    onPlayerStateChanged?.call(false);
     onStageUpdated?.call(currentStageIndex, currentStage!.stageName);
   }
 
@@ -92,10 +97,15 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   void onPlayerDied() {
     deathCount++;
     onDeathsUpdated?.call(deathCount);
+    onPlayerStateChanged?.call(true);
   }
 
   void respawnPlayer() {
     if (player == null || currentStage == null) return;
+
+    // Clean up bullets and blood particles from previous run
+    world.children.whereType<BloodParticleSystem>().forEach((b) => b.removeFromParent());
+    world.children.whereType<Bullet>().forEach((b) => b.removeFromParent());
 
     // Zero-delay instant respawn: Reset player position to checkpoint
     final respawnPos = (activeCheckpoint != null && activeCheckpointStage == currentStageIndex)
@@ -106,6 +116,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
 
     // Reset all traps and trigger zones in the current stage
     currentStage!.resetHazards();
+    onPlayerStateChanged?.call(false);
   }
 
   void onStageCleared(int fromStage) {
@@ -127,6 +138,21 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   @override
   KeyEventResult onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (player == null) return KeyEventResult.ignored;
+
+    // When dead, allow instant retry with R, Space, Enter, Up, or W
+    if (!player!.isAlive) {
+      if (event is KeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.keyR ||
+            event.logicalKey == LogicalKeyboardKey.space ||
+            event.logicalKey == LogicalKeyboardKey.enter ||
+            event.logicalKey == LogicalKeyboardKey.arrowUp ||
+            event.logicalKey == LogicalKeyboardKey.keyW) {
+          respawnPlayer();
+          return KeyEventResult.handled;
+        }
+      }
+      return KeyEventResult.handled;
+    }
 
     // Horizontal Movement
     double move = 0.0;

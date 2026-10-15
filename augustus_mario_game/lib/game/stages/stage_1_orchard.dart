@@ -13,7 +13,7 @@ class Stage1Orchard extends StageBase {
       : super(
           stageName: "STAGE 1: THE DECEPTIVE ORCHARD",
           stageIndex: 1,
-          defaultSpawnPosition: Vector2(70, 520),
+          defaultSpawnPosition: Vector2(70, 540),
         );
 
   @override
@@ -54,9 +54,9 @@ class Stage1Orchard extends StageBase {
     // 3. Save Point (Shootable)
     final savePt = SavePoint(
       position: Vector2(700, 164),
-      respawnPosition: Vector2(680, 160),
+      respawnPosition: Vector2(680, 172),
       onSaved: () {
-        game.updateCheckpoint(Vector2(680, 160), stageIndex);
+        game.updateCheckpoint(Vector2(680, 172), stageIndex);
       },
     );
     add(savePt);

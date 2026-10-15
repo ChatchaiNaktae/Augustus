@@ -14,7 +14,7 @@ class Stage3Leap extends StageBase {
       : super(
           stageName: "STAGE 3: THE LEAP OF FAITH",
           stageIndex: 3,
-          defaultSpawnPosition: Vector2(70, 520),
+          defaultSpawnPosition: Vector2(70, 540),
         );
 
   @override
@@ -54,9 +54,9 @@ class Stage3Leap extends StageBase {
     add(PlatformBlock(position: Vector2(400, 320), size: Vector2(80, 20)));
     final midSavePt = SavePoint(
       position: Vector2(425, 284),
-      respawnPosition: Vector2(410, 280),
+      respawnPosition: Vector2(410, 292),
       onSaved: () {
-        game.updateCheckpoint(Vector2(410, 280), stageIndex);
+        game.updateCheckpoint(Vector2(410, 292), stageIndex);
       },
     );
     add(midSavePt);

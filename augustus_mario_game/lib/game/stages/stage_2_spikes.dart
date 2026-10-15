@@ -13,7 +13,7 @@ class Stage2Spikes extends StageBase {
       : super(
           stageName: "STAGE 2: THE SPIKE LABYRINTH",
           stageIndex: 2,
-          defaultSpawnPosition: Vector2(70, 520),
+          defaultSpawnPosition: Vector2(70, 540),
         );
 
   @override
@@ -45,9 +45,9 @@ class Stage2Spikes extends StageBase {
     add(PlatformBlock(position: Vector2(400, 240), size: Vector2(100, 24)));
     final savePt = SavePoint(
       position: Vector2(440, 204),
-      respawnPosition: Vector2(420, 200),
+      respawnPosition: Vector2(420, 212),
       onSaved: () {
-        game.updateCheckpoint(Vector2(420, 200), stageIndex);
+        game.updateCheckpoint(Vector2(420, 212), stageIndex);
       },
     );
     add(savePt);
