@@ -29,7 +29,7 @@ abstract class StageBase extends Component with HasGameReference<IWBTGGame> {
   }
 
   @override
-  FutureOr<void> addAll(Iterable<Component> components) {
+  Future<void> addAll(Iterable<Component> components) {
     for (final component in components) {
       _registerComponent(component);
     }
