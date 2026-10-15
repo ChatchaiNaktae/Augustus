@@ -262,7 +262,7 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     // Hand holding Pistol
     final gunPaint = Paint()..color = const Color(0xFFD8DEE9);
     canvas.drawRect(const Rect.fromLTWH(16, 14, 6, 3), gunPaint);
-    canvas.drawRect(const Rect.fromLTWH(15, 15, 3, 4), const Paint()..color = const Color(0xFF4C566A));
+    canvas.drawRect(const Rect.fromLTWH(15, 15, 3, 4), Paint()..color = const Color(0xFF4C566A));
 
     canvas.restore();
   }

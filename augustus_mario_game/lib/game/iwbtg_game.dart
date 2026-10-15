@@ -2,6 +2,7 @@ import 'package:flame/camera.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'game_constants.dart';
 import 'components/player.dart';
 import 'stages/stage_base.dart';
