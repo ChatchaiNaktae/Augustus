@@ -18,6 +18,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   final void Function(int stage, String name)? onStageUpdated;
   final VoidCallback? onVictoryTriggered;
   final void Function(bool isDead)? onPlayerStateChanged;
+  final VoidCallback? onPauseRequested;
 
   int currentStageIndex = 1;
   int deathCount = 0;
@@ -33,6 +34,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     this.onStageUpdated,
     this.onVictoryTriggered,
     this.onPlayerStateChanged,
+    this.onPauseRequested,
   }) {
     currentStageIndex = initialStage;
   }
@@ -57,8 +59,8 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     currentStage?.removeFromParent();
 
     // Clean up bullets and blood particles from previous run
-    world.children.whereType<BloodParticleSystem>().forEach((b) => b.removeFromParent());
-    world.children.whereType<Bullet>().forEach((b) => b.removeFromParent());
+    world.children.whereType<BloodParticleSystem>().toList().forEach((b) => b.removeFromParent());
+    world.children.whereType<Bullet>().toList().forEach((b) => b.removeFromParent());
 
     // Instantiate selected stage
     switch (stageNumber) {
@@ -104,8 +106,8 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     if (player == null || currentStage == null) return;
 
     // Clean up bullets and blood particles from previous run
-    world.children.whereType<BloodParticleSystem>().forEach((b) => b.removeFromParent());
-    world.children.whereType<Bullet>().forEach((b) => b.removeFromParent());
+    world.children.whereType<BloodParticleSystem>().toList().forEach((b) => b.removeFromParent());
+    world.children.whereType<Bullet>().toList().forEach((b) => b.removeFromParent());
 
     // Zero-delay instant respawn: Reset player position to checkpoint
     final respawnPos = (activeCheckpoint != null && activeCheckpointStage == currentStageIndex)
@@ -117,6 +119,12 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     // Reset all traps and trigger zones in the current stage
     currentStage!.resetHazards();
     onPlayerStateChanged?.call(false);
+  }
+
+  void restartCurrentStage() {
+    activeCheckpoint = null;
+    activeCheckpointStage = null;
+    loadStage(currentStageIndex);
   }
 
   void onStageCleared(int fromStage) {
@@ -131,6 +139,8 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   }
 
   void onVictory() {
+    activeCheckpoint = null;
+    activeCheckpointStage = null;
     onVictoryTriggered?.call();
   }
 
@@ -139,15 +149,22 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   KeyEventResult onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (player == null) return KeyEventResult.ignored;
 
-    // When dead, allow instant retry with R, Space, Enter, Up, or W
+    // When dead, allow instant retry with R, Space, Enter, Up, W, Z, J, or K
     if (!player!.isAlive) {
       if (event is KeyDownEvent) {
         if (event.logicalKey == LogicalKeyboardKey.keyR ||
             event.logicalKey == LogicalKeyboardKey.space ||
             event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.arrowUp ||
-            event.logicalKey == LogicalKeyboardKey.keyW) {
+            event.logicalKey == LogicalKeyboardKey.keyW ||
+            event.logicalKey == LogicalKeyboardKey.keyZ ||
+            event.logicalKey == LogicalKeyboardKey.keyJ ||
+            event.logicalKey == LogicalKeyboardKey.keyK) {
           respawnPlayer();
+          return KeyEventResult.handled;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.escape) {
+          onPauseRequested?.call();
           return KeyEventResult.handled;
         }
       }
@@ -166,13 +183,14 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     }
     player!.setMoveInput(move);
 
-    // Jump (Shift or Space or Up Arrow)
+    // Jump (Shift, Space, Up Arrow, W, or K)
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
           event.logicalKey == LogicalKeyboardKey.shiftRight ||
           event.logicalKey == LogicalKeyboardKey.space ||
           event.logicalKey == LogicalKeyboardKey.arrowUp ||
-          event.logicalKey == LogicalKeyboardKey.keyW) {
+          event.logicalKey == LogicalKeyboardKey.keyW ||
+          event.logicalKey == LogicalKeyboardKey.keyK) {
         player!.pressJump();
       }
 
@@ -186,12 +204,18 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
       if (event.logicalKey == LogicalKeyboardKey.keyR) {
         respawnPlayer();
       }
+
+      // Pause (Escape)
+      if (event.logicalKey == LogicalKeyboardKey.escape) {
+        onPauseRequested?.call();
+      }
     } else if (event is KeyUpEvent) {
       if (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
           event.logicalKey == LogicalKeyboardKey.shiftRight ||
           event.logicalKey == LogicalKeyboardKey.space ||
           event.logicalKey == LogicalKeyboardKey.arrowUp ||
-          event.logicalKey == LogicalKeyboardKey.keyW) {
+          event.logicalKey == LogicalKeyboardKey.keyW ||
+          event.logicalKey == LogicalKeyboardKey.keyK) {
         player!.releaseJump();
       }
     }

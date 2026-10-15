@@ -46,8 +46,8 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
   }
 
   void setMoveInput(double input) {
-    if (!isAlive) return;
     moveInput = input.clamp(-1.0, 1.0);
+    if (!isAlive) return;
     if (moveInput > 0.1) facingRight = true;
     if (moveInput < -0.1) facingRight = false;
   }
@@ -97,6 +97,8 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     isAlive = true;
     isOnGround = false;
     canDoubleJump = false;
+    moveInput = 0.0;
+    isJumpHeld = false;
     _coyoteTimer = 0.0;
     _jumpBufferTimer = 0.0;
   }
@@ -204,10 +206,10 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
 
     // Horizontal pass
     position.x += velocity.x * dt;
-    final playerRectX = toRect();
 
     for (final block in blocks) {
       final blockRect = block.toRect();
+      final playerRectX = toRect();
       if (playerRectX.overlaps(blockRect)) {
         // Only block horizontally if player vertically overlaps the block (avoids floor treated as wall)
         if (playerRectX.bottom > blockRect.top + 1.0 && playerRectX.top < blockRect.bottom - 1.0) {
@@ -221,14 +223,31 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       }
     }
 
+    // Also block horizontally against intact collapsing blocks
+    for (final cBlock in collapsingBlocks) {
+      if (cBlock.isDeadly) continue;
+      final blockRect = cBlock.toRect();
+      final playerRectX = toRect();
+      if (playerRectX.overlaps(blockRect)) {
+        if (playerRectX.bottom > blockRect.top + 1.0 && playerRectX.top < blockRect.bottom - 1.0) {
+          if (velocity.x > 0) {
+            position.x = blockRect.left - width;
+          } else if (velocity.x < 0) {
+            position.x = blockRect.right;
+          }
+          velocity.x = 0;
+        }
+      }
+    }
+
     // Vertical pass
     position.y += velocity.y * dt;
-    final playerRectY = toRect();
     isOnGround = false;
 
     // Check solid blocks
     for (final block in blocks) {
       final blockRect = block.toRect();
+      final playerRectY = toRect();
       if (playerRectY.overlaps(blockRect)) {
         // Only land/ceiling if player horizontally overlaps the block (avoids wall sliding treated as floor)
         if (playerRectY.right > blockRect.left + 1.0 && playerRectY.left < blockRect.right - 1.0) {
@@ -246,9 +265,11 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       }
     }
 
-    // Check collapsing blocks
+    // Check collapsing blocks (only when intact and not deadly)
     for (final cBlock in collapsingBlocks) {
+      if (cBlock.isDeadly) continue;
       final cRect = cBlock.toRect();
+      final playerRectY = toRect();
       if (playerRectY.overlaps(cRect)) {
         if (playerRectY.right > cRect.left + 1.0 &&
             playerRectY.left < cRect.right - 1.0 &&

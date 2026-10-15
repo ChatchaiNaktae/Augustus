@@ -24,26 +24,55 @@ abstract class StageBase extends Component with HasGameReference<IWBTGGame> {
 
   @override
   FutureOr<void> add(Component component) {
-    if (component is PlatformBlock) {
-      platforms.add(component);
-    } else if (component is CollapsingBlock) {
-      collapsingPlatforms.add(component);
-    } else if (component is HazardBase) {
-      hazards.add(component);
-    } else if (component is TriggerZone) {
-      triggerZones.add(component);
-    }
+    _registerComponent(component);
     return super.add(component);
   }
 
+  @override
+  FutureOr<void> addAll(Iterable<Component> components) {
+    for (final component in components) {
+      _registerComponent(component);
+    }
+    return super.addAll(components);
+  }
+
+  void _registerComponent(Component component) {
+    if (component is PlatformBlock) {
+      if (!platforms.contains(component)) platforms.add(component);
+    } else if (component is CollapsingBlock) {
+      if (!collapsingPlatforms.contains(component)) collapsingPlatforms.add(component);
+    } else if (component is HazardBase) {
+      if (!hazards.contains(component)) hazards.add(component);
+    } else if (component is TriggerZone) {
+      if (!triggerZones.contains(component)) triggerZones.add(component);
+    }
+  }
+
+  @override
+  void remove(Component component) {
+    if (component is PlatformBlock) {
+      platforms.remove(component);
+    } else if (component is CollapsingBlock) {
+      collapsingPlatforms.remove(component);
+    } else if (component is HazardBase) {
+      hazards.remove(component);
+    } else if (component is TriggerZone) {
+      triggerZones.remove(component);
+    }
+    super.remove(component);
+  }
+
   void resetHazards() {
-    for (final hazard in hazards) {
+    final Set<HazardBase> allHazards = {...hazards, ...children.whereType<HazardBase>()};
+    for (final hazard in allHazards) {
       hazard.reset();
     }
-    for (final trigger in triggerZones) {
+    final Set<TriggerZone> allTriggers = {...triggerZones, ...children.whereType<TriggerZone>()};
+    for (final trigger in allTriggers) {
       trigger.reset();
     }
-    for (final block in collapsingPlatforms) {
+    final Set<CollapsingBlock> allCollapsing = {...collapsingPlatforms, ...children.whereType<CollapsingBlock>()};
+    for (final block in allCollapsing) {
       block.reset();
     }
   }

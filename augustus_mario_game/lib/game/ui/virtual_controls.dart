@@ -145,17 +145,17 @@ class _TouchButtonState extends State<_TouchButton> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Listener(
       behavior: HitTestBehavior.opaque,
-      onTapDown: (_) {
+      onPointerDown: (_) {
         setState(() => _isPressed = true);
         widget.onDown();
       },
-      onTapUp: (_) {
+      onPointerUp: (_) {
         setState(() => _isPressed = false);
         widget.onUp?.call();
       },
-      onTapCancel: () {
+      onPointerCancel: (_) {
         setState(() => _isPressed = false);
         widget.onUp?.call();
       },

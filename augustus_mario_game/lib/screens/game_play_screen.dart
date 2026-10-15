@@ -39,6 +39,9 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
       onPlayerStateChanged: (isDead) {
         if (mounted) setState(() => _isPlayerDead = isDead);
       },
+      onPauseRequested: () {
+        if (mounted) _showPauseMenu();
+      },
     );
   }
 
@@ -84,7 +87,7 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
               height: 46,
               onPressed: () {
                 Navigator.pop(ctx);
-                _game.respawnPlayer();
+                _game.restartCurrentStage();
               },
             ),
             const SizedBox(height: 12),
@@ -204,17 +207,6 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
             ),
           ),
 
-          // Top HUD Overlay
-          HudOverlay(
-            stageName: _currentStageName,
-            deathCount: _deathCount,
-            showControls: _showVirtualControls,
-            onToggleControls: () {
-              setState(() => _showVirtualControls = !_showVirtualControls);
-            },
-            onMenuPressed: _showPauseMenu,
-          ),
-
           // Mobile / Virtual Controls Overlay (if enabled)
           if (_showVirtualControls)
             VirtualControlsOverlay(game: _game),
@@ -254,6 +246,17 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                 ),
               ),
             ),
+
+          // Top HUD Overlay (Placed on top so Menu is always clickable!)
+          HudOverlay(
+            stageName: _currentStageName,
+            deathCount: _deathCount,
+            showControls: _showVirtualControls,
+            onToggleControls: () {
+              setState(() => _showVirtualControls = !_showVirtualControls);
+            },
+            onMenuPressed: _showPauseMenu,
+          ),
         ],
       ),
     );
