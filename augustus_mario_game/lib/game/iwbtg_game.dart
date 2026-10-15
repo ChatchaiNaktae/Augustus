@@ -1,4 +1,5 @@
 import 'package:flame/camera.dart';
+import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/services.dart';
@@ -47,6 +48,8 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     camera.viewport = FixedResolutionViewport(
       resolution: Vector2(GameConstants.gameWidth, GameConstants.gameHeight),
     );
+    camera.viewfinder.anchor = Anchor.topLeft;
+    camera.viewfinder.position = Vector2.zero();
 
     await loadStage(currentStageIndex);
   }
