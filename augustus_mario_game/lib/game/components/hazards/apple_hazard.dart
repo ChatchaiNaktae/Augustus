@@ -39,24 +39,24 @@ class AppleHazard extends HazardBase {
 
     switch (behavior) {
       case AppleBehavior.fallDown:
-        _velocity = Vector2(0, 50);
-        _gravity = 1100;
+        _velocity = Vector2(0, 180); // เดิม 50
+        _gravity = 2200; // เดิม 1100 (ตกเร็วขึ้น 2 เท่า)
         break;
       case AppleBehavior.flyUp:
         // Iconic IWBTG troll: Apple shoots UPWARD!
-        _velocity = Vector2(0, -480);
+        _velocity = Vector2(0, -750); // เดิม -480 (พุ่งขึ้นฟ้าไวขึ้น)
         _gravity = 0;
         break;
       case AppleBehavior.flyLeft:
-        _velocity = Vector2(-380, 0);
+        _velocity = Vector2(-650, 0); // เดิม -380
         _gravity = 0;
         break;
       case AppleBehavior.flyRight:
-        _velocity = Vector2(380, 0);
+        _velocity = Vector2(650, 0); // เดิม 380
         _gravity = 0;
         break;
       case AppleBehavior.customVelocity:
-        _velocity = customLaunchVelocity?.clone() ?? Vector2(0, -300);
+        _velocity = customLaunchVelocity?.clone() ?? Vector2(0, -450);
         _gravity = 0;
         break;
       case AppleBehavior.staticItem:

@@ -69,7 +69,7 @@ class Stage2Spikes extends StageBase {
     final guillotineSpike = SpikeHazard(
       position: Vector2(260, 32),
       direction: SpikeDirection.down,
-      triggerVelocity: Vector2(0, 560),
+      triggerVelocity: Vector2(0, 850), // เดิม 560
       hazardId: "spike_guillotine",
     );
     add(guillotineSpike);
@@ -84,7 +84,7 @@ class Stage2Spikes extends StageBase {
     final wallSpike = SpikeHazard(
       position: Vector2(32, 400),
       direction: SpikeDirection.right,
-      triggerVelocity: Vector2(500, 0),
+      triggerVelocity: Vector2(750, 0), // เดิม 500
       hazardId: "spike_wall_rusher",
     );
     add(wallSpike);
@@ -99,7 +99,7 @@ class Stage2Spikes extends StageBase {
     final rocketSpike = SpikeHazard(
       position: Vector2(600, 536),
       direction: SpikeDirection.up,
-      triggerVelocity: Vector2(0, -580),
+      triggerVelocity: Vector2(0, -850), // เดิม -580
       hazardId: "spike_rocket",
     );
     add(rocketSpike);

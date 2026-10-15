@@ -17,8 +17,8 @@ class GameConstants {
   static const double playerMoveSpeed = 220.0;
   static const double gravity = 1400.0;
   static const double maxFallSpeed = 700.0;
-  static const double jumpVelocity = -430.0;
-  static const double doubleJumpVelocity = -390.0;
+  static const double jumpVelocity = -485.0; // เดิม -430.0 (สูงขึ้นจาก 66px เป็น 84px)
+  static const double doubleJumpVelocity = -445.0; // เดิม -390.0 (สูงขึ้นจาก 54px เป็น 71px)
   static const double jumpCutMultiplier = 0.45; // Variable jump height reduction
 
   // Bullet
