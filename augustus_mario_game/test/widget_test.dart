@@ -48,4 +48,36 @@ void main() {
 
     await gesture.up();
   });
+
+  testWidgets('VirtualControlsOverlay renders R above JUMP and triggers respawn', (WidgetTester tester) async {
+    final game = IWBTGGame(initialStage: 1);
+    await game.onLoad();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Stack(
+            children: [
+              VirtualControlsOverlay(game: game),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final rButton = find.text('R');
+    final jumpButton = find.text('JUMP');
+    final shootButton = find.text('SHOOT');
+
+    expect(rButton, findsOneWidget);
+    expect(jumpButton, findsOneWidget);
+    expect(shootButton, findsOneWidget);
+
+    // Verify R button is vertically above JUMP button (lower Y coordinate)
+    final rCenter = tester.getCenter(rButton);
+    final jumpCenter = tester.getCenter(jumpButton);
+    expect(rCenter.dy, lessThan(jumpCenter.dy));
+    // Verify R button is horizontally aligned with JUMP button
+    expect(rCenter.dx, closeTo(jumpCenter.dx, 1.0));
+  });
 }

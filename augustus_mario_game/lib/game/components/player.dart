@@ -9,6 +9,7 @@ import 'platform_block.dart';
 import 'hazards/hazard_base.dart';
 import 'hazards/trigger_zone.dart';
 import 'hazards/collapsing_block.dart';
+import 'save_point.dart';
 
 class Player extends PositionComponent with CollisionCallbacks, HasGameReference<IWBTGGame> {
   final Vector2 velocity = Vector2.zero();
@@ -207,7 +208,7 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       velocity.y = GameConstants.maxFallSpeed;
     }
 
-    // Active TriggerZone sweep check to prevent high-speed tunneling through triggers
+    // Active TriggerZone & SavePoint sweep check
     final stage = game.currentStage;
     if (stage != null) {
       final pRect = toRect();
@@ -217,6 +218,12 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       for (final zone in zones) {
         if (zone.toRect().overlaps(pRect)) {
           zone.activate();
+        }
+      }
+
+      for (final sp in stage.children.whereType<SavePoint>()) {
+        if (!sp.isSaved && sp.toRect().overlaps(pRect)) {
+          sp.activateSave();
         }
       }
     }
@@ -412,6 +419,8 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       die();
     } else if (other is TriggerZone) {
       other.activate();
+    } else if (other is SavePoint) {
+      other.activateSave();
     }
   }
 
@@ -424,6 +433,8 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       die();
     } else if (other is TriggerZone) {
       other.activate();
+    } else if (other is SavePoint) {
+      other.activateSave();
     }
   }
 

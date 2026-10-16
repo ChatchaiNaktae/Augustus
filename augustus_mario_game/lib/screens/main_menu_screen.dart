@@ -39,12 +39,12 @@ class MainMenuScreen extends StatelessWidget {
                 _instructionSection("📱 TOUCH CONTROLS (MOBILE)", [
                   "Virtual D-Pad on bottom-left to move",
                   "JUMP button (tap in air for Double Jump)",
-                  "SHOOT button to fire pistol and hit SAVE boxes",
-                  "R button in center to instant retry after death",
+                  "SHOOT button to fire pistol",
+                  "R button above JUMP for instant retry after death",
                 ]),
                 const SizedBox(height: 16),
                 _instructionSection("💡 SURVIVAL TIPS", [
-                  "Shoot 'SAVE' boxes with your gun to record checkpoints!",
+                  "Touch or shoot 'SAVE' boxes to record checkpoints!",
                   "Apples and spikes do NOT follow the laws of physics!",
                   "Death is part of the learning process - press R quickly!",
                 ]),

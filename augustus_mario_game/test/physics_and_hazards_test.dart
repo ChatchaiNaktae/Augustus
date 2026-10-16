@@ -5,6 +5,7 @@ import 'package:augustus_mario_game/game/components/hazards/apple_hazard.dart';
 import 'package:augustus_mario_game/game/components/hazards/spike_hazard.dart';
 import 'package:augustus_mario_game/game/components/hazards/trigger_zone.dart';
 import 'package:augustus_mario_game/game/components/hazards/collapsing_block.dart';
+import 'package:augustus_mario_game/game/components/save_point.dart';
 import 'package:augustus_mario_game/game/iwbtg_game.dart';
 import 'package:augustus_mario_game/game/game_constants.dart';
 
@@ -304,6 +305,32 @@ void main() {
       expect(player.isOnGround, isFalse);
       expect(player.velocity.y, greaterThan(0));
       expect(player.position.y, greaterThan(300 - player.height));
+    });
+  });
+
+  group('SavePoint Tests', () {
+    test('Touching SavePoint activates save and triggers checkpoint', () async {
+      final game = await createTestGame();
+      final player = game.player!;
+
+      bool savedCallbackCalled = false;
+      final savePt = SavePoint(
+        position: Vector2(player.position.x + 20, player.position.y),
+        respawnPosition: Vector2(player.position.x + 20, player.position.y),
+        onSaved: () => savedCallbackCalled = true,
+      );
+      game.currentStage!.add(savePt);
+
+      expect(savePt.isSaved, isFalse);
+
+      // Move player into save point
+      player.setMoveInput(1.0);
+      for (int i = 0; i < 5; i++) {
+        player.update(0.016);
+      }
+
+      expect(savePt.isSaved, isTrue);
+      expect(savedCallbackCalled, isTrue);
     });
   });
 }

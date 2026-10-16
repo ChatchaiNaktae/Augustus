@@ -3,6 +3,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../game_constants.dart';
 import 'bullet.dart';
+import 'player.dart';
 
 class SavePoint extends PositionComponent with CollisionCallbacks {
   bool isSaved = false;
@@ -34,6 +35,19 @@ class SavePoint extends PositionComponent with CollisionCallbacks {
     if (other is Bullet) {
       activateSave();
       other.removeFromParent();
+    } else if (other is Player) {
+      activateSave();
+    }
+  }
+
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+    if (other is Bullet) {
+      activateSave();
+      other.removeFromParent();
+    } else if (other is Player) {
+      activateSave();
     }
   }
 

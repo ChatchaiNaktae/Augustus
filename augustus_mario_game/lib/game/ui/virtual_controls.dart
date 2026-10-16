@@ -85,18 +85,10 @@ class _VirtualControlsOverlayState extends State<VirtualControlsOverlay> {
             ],
           ),
 
-          // Center Quick Retry 'R' button
-          _TouchButton(
-            label: "R",
-            bgColor: RetroTheme.primary.withValues(alpha: 0.85),
-            borderColor: Colors.white,
-            size: 52,
-            onDown: () => widget.game.respawnPlayer(),
-          ),
-
-          // Action Buttons: Shoot & Jump
+          // Action Buttons: Shoot & (R stacked over Jump)
           Row(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               _TouchButton(
                 label: "SHOOT",
@@ -113,20 +105,35 @@ class _VirtualControlsOverlayState extends State<VirtualControlsOverlay> {
                 },
               ),
               const SizedBox(width: 14),
-              _TouchButton(
-                label: "JUMP",
-                bgColor: RetroTheme.green.withValues(alpha: 0.85),
-                textColor: Colors.black,
-                size: 68,
-                fontSize: 12,
-                onDown: () {
-                  if (widget.game.player?.isAlive == false) {
-                    widget.game.respawnPlayer();
-                  } else {
-                    widget.game.player?.pressJump();
-                  }
-                },
-                onUp: () => widget.game.player?.releaseJump(),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _TouchButton(
+                    label: "R",
+                    bgColor: RetroTheme.primary.withValues(alpha: 0.85),
+                    borderColor: Colors.white,
+                    size: 46,
+                    fontSize: 12,
+                    onDown: () => widget.game.respawnPlayer(),
+                  ),
+                  const SizedBox(height: 10),
+                  _TouchButton(
+                    label: "JUMP",
+                    bgColor: RetroTheme.green.withValues(alpha: 0.85),
+                    textColor: Colors.black,
+                    size: 68,
+                    fontSize: 12,
+                    onDown: () {
+                      if (widget.game.player?.isAlive == false) {
+                        widget.game.respawnPlayer();
+                      } else {
+                        widget.game.player?.pressJump();
+                      }
+                    },
+                    onUp: () => widget.game.player?.releaseJump(),
+                  ),
+                ],
               ),
             ],
           ),
