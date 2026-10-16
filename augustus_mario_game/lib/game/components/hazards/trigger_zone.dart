@@ -1,6 +1,7 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import '../player.dart';
 
 class TriggerZone extends PositionComponent with CollisionCallbacks {
   final List<String> targetHazardIds;
@@ -9,12 +10,12 @@ class TriggerZone extends PositionComponent with CollisionCallbacks {
   bool _hasTriggered = false;
 
   TriggerZone({
-    required Vector2 position,
-    required Vector2 size,
+    required super.position,
+    required super.size,
     this.targetHazardIds = const [],
     this.onTrigger,
     this.triggerOnce = true,
-  }) : super(position: position, size: size) {
+  }) {
     add(RectangleHitbox(collisionType: CollisionType.passive));
   }
 
@@ -26,5 +27,21 @@ class TriggerZone extends PositionComponent with CollisionCallbacks {
 
   void reset() {
     _hasTriggered = false;
+  }
+
+  @override
+  void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollisionStart(intersectionPoints, other);
+    if (other is Player && other.isAlive) {
+      activate();
+    }
+  }
+
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+    if (other is Player && other.isAlive) {
+      activate();
+    }
   }
 }

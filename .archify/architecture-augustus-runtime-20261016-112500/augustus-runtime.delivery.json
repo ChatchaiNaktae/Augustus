@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "12d1a28c-c93e-4f1c-910d-abe1a17fbe52",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\Chatchai_08\\Downloads\\Augustus\\.archify\\architecture-augustus-runtime-20261016-112500\\candidate.json",
+  "output": "C:\\Users\\Chatchai_08\\Downloads\\Augustus\\.archify\\architecture-augustus-runtime-20261016-112500\\augustus-runtime.html",
+  "specification": {
+    "sha256": "b947bac6ac03300d40b6934226ed8cb9a292206a5b48aee13220c9b622b42b40",
+    "bytes": 14344
+  },
+  "artifact": {
+    "sha256": "140ba66275ad1d657578c024a37fa86bf67067e23aec1dfad0182640466d276e",
+    "bytes": 840392
+  }
+}

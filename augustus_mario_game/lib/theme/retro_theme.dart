@@ -118,22 +118,28 @@ class _RetroButtonState extends State<RetroButton> {
             ],
           ),
           child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (widget.icon != null) ...[
-                  Icon(widget.icon, color: widget.textColor, size: widget.fontSize + 2),
-                  const SizedBox(width: 8),
-                ],
-                Text(
-                  widget.label,
-                  style: RetroTheme.pixelText(
-                    fontSize: widget.fontSize,
-                    color: widget.textColor,
-                  ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (widget.icon != null) ...[
+                      Icon(widget.icon, color: widget.textColor, size: widget.fontSize + 2),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      widget.label,
+                      style: RetroTheme.pixelText(
+                        fontSize: widget.fontSize,
+                        color: widget.textColor,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

@@ -15,6 +15,29 @@ class _VirtualControlsOverlayState extends State<VirtualControlsOverlay> {
   bool _leftPressed = false;
   bool _rightPressed = false;
 
+  @override
+  void initState() {
+    super.initState();
+    widget.game.onPlayerRespawned = _resetControls;
+  }
+
+  @override
+  void dispose() {
+    if (widget.game.onPlayerRespawned == _resetControls) {
+      widget.game.onPlayerRespawned = null;
+    }
+    super.dispose();
+  }
+
+  void _resetControls() {
+    if (!mounted) return;
+    setState(() {
+      _leftPressed = false;
+      _rightPressed = false;
+    });
+    widget.game.player?.setMoveInput(0.0);
+  }
+
   void _updateMovement() {
     double move = 0.0;
     if (_leftPressed) move -= 1.0;

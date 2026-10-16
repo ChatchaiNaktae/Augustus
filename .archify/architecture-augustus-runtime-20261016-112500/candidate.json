@@ -1,0 +1,404 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Augustus (IWBTG) Runtime Architecture",
+    "locale": "en",
+    "output": ".archify/architecture-augustus-runtime-20261016-112500/augustus-runtime.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/ChatchaiNaktae/Augustus",
+      "revision": "58ee834fdd83cb12c3c0d03292468dc2cd5a284d",
+      "provider": "github"
+    },
+    "views": [
+      {
+        "id": "primary-route",
+        "label": "Primary Gameplay Route",
+        "focus": ["user_device", "screen_navigator", "flame_game_core", "player_controller", "collision_combat"],
+        "note": "Real-time user input to physics calculation and AABB collision resolution"
+      },
+      {
+        "id": "hazards-death",
+        "label": "Trap Automation & Death FX",
+        "focus": ["hazard_automations", "player_controller", "particle_engine"],
+        "note": "Hazard triggers, deadly collision, and blood particle explosion"
+      },
+      {
+        "id": "save-respawn",
+        "label": "Save Point & 0s Respawn",
+        "focus": ["stage_manager", "flame_game_core", "checkpoint_respawn"],
+        "note": "Bullet-triggered checkpointing, instant 0-second respawn and stage reset"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "user_device",
+      "type": "external",
+      "label": "User Hardware & OS",
+      "sublabel": "Keyboard / Touch / OS",
+      "tag": "Untrusted Client",
+      "pos": [40, 240],
+      "size": [140, 60]
+    },
+    {
+      "id": "flutter_host",
+      "type": "frontend",
+      "label": "Flutter App Host",
+      "sublabel": "App & SystemChrome",
+      "tag": "Shell Host",
+      "pos": [270, 80],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "augustus_mario_game/lib/main.dart",
+          "line": 6,
+          "end_line": 19,
+          "label": "main & setup"
+        }
+      ]
+    },
+    {
+      "id": "screen_navigator",
+      "type": "frontend",
+      "label": "Screen Navigator",
+      "sublabel": "Menu & Stage Routing",
+      "tag": "UI Router",
+      "pos": [270, 240],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "augustus_mario_game/lib/screens/main_menu_screen.dart",
+          "line": 177,
+          "end_line": 204,
+          "label": "route transitions"
+        }
+      ]
+    },
+    {
+      "id": "game_play_screen",
+      "type": "frontend",
+      "label": "GamePlayScreen",
+      "sublabel": "Stack, HUD & Overlays",
+      "tag": "Widget Host",
+      "pos": [270, 400],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "augustus_mario_game/lib/screens/game_play_screen.dart",
+          "line": 18,
+          "end_line": 46,
+          "label": "game callbacks"
+        },
+        {
+          "path": "augustus_mario_game/lib/screens/game_play_screen.dart",
+          "line": 198,
+          "end_line": 262,
+          "label": "widget tree stack"
+        }
+      ]
+    },
+    {
+      "id": "stage_manager",
+      "type": "backend",
+      "label": "Stage Manager",
+      "sublabel": "Stage 1-3 Loader",
+      "tag": "World Loader",
+      "pos": [510, 80],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "augustus_mario_game/lib/game/stages/stage_base.dart",
+          "line": 9,
+          "end_line": 49,
+          "label": "stage registry"
+        },
+        {
+          "path": "augustus_mario_game/lib/game/stages/stage_base.dart",
+          "line": 65,
+          "end_line": 83,
+          "label": "hazard reset"
+        }
+      ]
+    },
+    {
+      "id": "flame_game_core",
+      "type": "backend",
+      "label": "Flame Game Core",
+      "sublabel": "Game Loop & Events",
+      "tag": "Engine Core",
+      "pos": [510, 240],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "augustus_mario_game/lib/game/iwbtg_game.dart",
+          "line": 16,
+          "end_line": 56,
+          "label": "game lifecycle"
+        },
+        {
+          "path": "augustus_mario_game/lib/game/iwbtg_game.dart",
+          "line": 151,
+          "end_line": 227,
+          "label": "keyboard handling"
+        }
+      ]
+    },
+    {
+      "id": "checkpoint_respawn",
+      "type": "database",
+      "label": "Checkpoint State",
+      "sublabel": "SavePoint & 0s Reset",
+      "tag": "State Store",
+      "pos": [510, 400],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "augustus_mario_game/lib/game/components/save_point.dart",
+          "line": 7,
+          "end_line": 38,
+          "label": "save point collision"
+        },
+        {
+          "path": "augustus_mario_game/lib/game/iwbtg_game.dart",
+          "line": 108,
+          "end_line": 131,
+          "label": "respawn logic"
+        }
+      ]
+    },
+    {
+      "id": "hazard_automations",
+      "type": "backend",
+      "label": "Hazard Traps",
+      "sublabel": "Apples & Guillotines",
+      "tag": "Trap Engines",
+      "pos": [750, 80],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "augustus_mario_game/lib/game/components/hazards/apple_hazard.dart",
+          "line": 10,
+          "end_line": 55,
+          "label": "apple trajectory"
+        },
+        {
+          "path": "augustus_mario_game/lib/game/components/hazards/spike_hazard.dart",
+          "line": 10,
+          "end_line": 60,
+          "label": "spike trap"
+        }
+      ]
+    },
+    {
+      "id": "player_controller",
+      "type": "backend",
+      "label": "Player Controller",
+      "sublabel": "Precision Physics",
+      "tag": "Physics Arbiter",
+      "pos": [750, 240],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "augustus_mario_game/lib/game/components/player.dart",
+          "line": 48,
+          "end_line": 80,
+          "label": "input handlers"
+        },
+        {
+          "path": "augustus_mario_game/lib/game/components/player.dart",
+          "line": 137,
+          "end_line": 201,
+          "label": "sub-step physics"
+        }
+      ]
+    },
+    {
+      "id": "particle_engine",
+      "type": "frontend",
+      "label": "Blood Particle FX",
+      "sublabel": "Blood Burst FX",
+      "tag": "Visual FX",
+      "pos": [750, 400],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "augustus_mario_game/lib/game/components/blood_particle.dart",
+          "line": 7,
+          "end_line": 50,
+          "label": "particle dynamics"
+        }
+      ]
+    },
+    {
+      "id": "collision_combat",
+      "type": "backend",
+      "label": "Collision & Combat",
+      "sublabel": "AABB Solids & Bullets",
+      "tag": "Collision Arbiter",
+      "pos": [990, 240],
+      "size": [150, 60],
+      "sources": [
+        {
+          "path": "augustus_mario_game/lib/game/components/player.dart",
+          "line": 203,
+          "end_line": 285,
+          "label": "solid block resolution"
+        },
+        {
+          "path": "augustus_mario_game/lib/game/components/player.dart",
+          "line": 287,
+          "end_line": 308,
+          "label": "hazard collision"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Flutter Client & UI Host Boundary",
+      "wraps": ["flutter_host", "screen_navigator", "game_play_screen"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Flame Engine Isolated Game World Boundary",
+      "wraps": [
+        "stage_manager",
+        "flame_game_core",
+        "checkpoint_respawn",
+        "hazard_automations",
+        "player_controller",
+        "particle_engine",
+        "collision_combat"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-user-nav",
+      "from": "user_device",
+      "to": "screen_navigator",
+      "label": "User Input",
+      "variant": "emphasis"
+    },
+    {
+      "id": "conn-nav-core",
+      "from": "screen_navigator",
+      "to": "flame_game_core",
+      "label": "Mount Game",
+      "variant": "emphasis"
+    },
+    {
+      "id": "conn-core-player",
+      "from": "flame_game_core",
+      "to": "player_controller",
+      "label": "Game Tick",
+      "variant": "emphasis"
+    },
+    {
+      "id": "conn-player-collision",
+      "from": "player_controller",
+      "to": "collision_combat",
+      "label": "AABB Check",
+      "variant": "emphasis"
+    },
+    {
+      "id": "conn-host-nav",
+      "from": "flutter_host",
+      "to": "screen_navigator",
+      "label": "runApp",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "conn-nav-screen",
+      "from": "screen_navigator",
+      "to": "game_play_screen",
+      "label": "Host Stack",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "conn-stage-core",
+      "from": "stage_manager",
+      "to": "flame_game_core",
+      "label": "loadStage",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "conn-core-checkpoint",
+      "from": "flame_game_core",
+      "to": "checkpoint_respawn",
+      "label": "Save State",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "conn-hazards-player",
+      "from": "hazard_automations",
+      "to": "player_controller",
+      "label": "Deadly Hit",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "conn-player-particle",
+      "from": "player_controller",
+      "to": "particle_engine",
+      "label": "die() Burst",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "สถาปัตยกรรมระดับรันไทม์ (Runtime Architecture)",
+      "items": [
+        "โครงสร้างแบบ Hybrid Two-Tier: Flutter Framework ทำหน้าที่เป็น UI Shell & Event Host และ Flame Engine ทำหน้าที่เป็น Real-time Game Loop",
+        "รันไทม์ควบคุมด้วย FixedResolutionViewport ขนาด 800x600 สไตล์เรโทรเพื่อล็อกอัตราส่วนการแสดงผลให้เท่ากันทุกแพลตฟอร์ม (Desktop, Web, Mobile)",
+        "การจัดส่งคีย์บอร์ดและทัชสกรีนถูกแยกระหว่าง Flutter UI Overlay (VirtualControls/HudOverlay) และ Flame KeyboardEvents โดยไม่รบกวนการคำนวณฟิสิกส์"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "เส้นทางหลักและการควบคุม (Primary Route & Physics)",
+      "items": [
+        "เส้นทางหลัก (Primary Path: สีเขียวเน้น): User Input -> Screen Navigator -> Flame Core -> Player Controller -> Collision Combat",
+        "กลไกฟิสิกส์จำลอง The Kid (Masocore Physics) แบบไร้แรงเฉื่อย (Zero Inertia Movement) ตอบสนองทันที 0ms เมื่อหยุดเดิน",
+        "ระบบกระโดดรองรับ Variable Jump (ตัดความสูงลงเมื่อปล่อยปุ่มเร็ว) และ Double Jump กลางอากาศ พร้อม Coyote Time (100ms) และ Jump Buffer (120ms)",
+        "Sub-step Physics: เมื่อเฟรมเรตตก (dt > 16ms) ระบบจะแบ่งการคำนวณเป็น half-step เพื่อป้องกันปัญหาวัตถุทะลุผ่าน (Tunneling)"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "ระบบกับดักและวงจรมรณะ (Hazards & Trap Automation)",
+      "items": [
+        "กับดักแบบ Handcrafted Fixed Traps ทั้ง 3 ด่าน (Orchard, Spikes, Leap) ควบคุมด้วย TriggerZone และ HazardBase",
+        "กับดักแอปเปิ้ลและหนามกิโยตินหลอกตา (Deceptive Traps) เคลื่อนที่ย้อนศรและเปลี่ยนวิถีตามตำแหน่งตัวละคร",
+        "การตายของผู้เล่น (Player.die) ก่อให้เกิด BloodParticleSystem สุ่มทิศทางละอองเลือดรอบจุดตายแบบ Custom Canvas Render"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "จุดเซฟและการเกิดใหม่ทันที (Checkpoint & 0s Respawn)",
+      "items": [
+        "SavePoint บันทึกพิกัดเมื่อถูกกระสุน (Bullet) ชนเท่านั้น โดยจะเปลี่ยนสถานะจาก SAVE เป็น SAVED พร้อมบันทึกพิกัดลง activeCheckpoint",
+        "Zero-Delay Quick Respawn (กด R หรือแตะจอขณะตาย) รีเซ็ตพิกัดตัวละครไปยังจุดเซฟล่าสุดและสั่ง resetHazards() ใน 0 วินาทีโดยไม่ต้องโหลดหน้าจอใหม่"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "การพึ่งพาภายนอกและขอบเขตความเชื่อถือ (Dependencies & Trust Boundaries)",
+      "items": [
+        "ขอบเขตภายนอก (Untrusted Client Device): รับสัญญาณ Raw Input จาก Hardware Keyboard และ Touch Digitizer ผ่าน OS Driver",
+        "ขอบเขต Flutter UI Host (Trust Zone 1): ควบคุมความปลอดภัยของหน้าจอ เมนู การสลับด่าน และ System Navigation",
+        "ขอบเขต Flame Game Simulation (Trust Zone 2): เป็นแซนด์บ็อกซ์สำหรับ State ของเกมทั้งหมด วัตถุกายภาพ กับดัก และสถานะการเกิดใหม่",
+        "การพึ่งพาภายนอก: Flutter SDK (Widgets, SystemChrome) และ Flame Engine v1.18.0 (Camera, Viewport, CollisionDetection)"
+      ]
+    }
+  ]
+}

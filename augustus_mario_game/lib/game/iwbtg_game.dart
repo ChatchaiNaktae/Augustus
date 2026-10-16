@@ -20,6 +20,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   final VoidCallback? onVictoryTriggered;
   final void Function(bool isDead)? onPlayerStateChanged;
   final VoidCallback? onPauseRequested;
+  VoidCallback? onPlayerRespawned;
 
   int currentStageIndex = 1;
   int deathCount = 0;
@@ -92,6 +93,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
 
     onPlayerStateChanged?.call(false);
     onStageUpdated?.call(currentStageIndex, currentStage!.stageName);
+    onPlayerRespawned?.call();
   }
 
   void updateCheckpoint(Vector2 checkpointPos, int stageNum) {
@@ -122,6 +124,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     // Reset all traps and trigger zones in the current stage
     currentStage!.resetHazards();
     onPlayerStateChanged?.call(false);
+    onPlayerRespawned?.call();
   }
 
   void restartCurrentStage() {

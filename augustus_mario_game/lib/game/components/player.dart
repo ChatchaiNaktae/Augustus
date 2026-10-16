@@ -26,6 +26,13 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
 
   final Vector2 respawnPosition;
 
+  Rect get hitboxRect => Rect.fromLTWH(
+        position.x + (GameConstants.playerWidth - GameConstants.playerHitboxWidth) / 2,
+        position.y + (GameConstants.playerHeight - GameConstants.playerHitboxHeight) / 2,
+        GameConstants.playerHitboxWidth,
+        GameConstants.playerHitboxHeight,
+      );
+
   Player({required Vector2 initialPosition})
       : respawnPosition = initialPosition.clone(),
         super(
@@ -33,6 +40,10 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
           size: Vector2(GameConstants.playerWidth, GameConstants.playerHeight),
           anchor: Anchor.topLeft,
         ) {
+    isOnGround = true;
+    canDoubleJump = true;
+    _coyoteTimer = 0.10;
+
     // Smaller precise hitbox for masocore dodging
     add(
       RectangleHitbox(
@@ -95,11 +106,11 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     position.setFrom(targetPos);
     velocity.setZero();
     isAlive = true;
-    isOnGround = false;
-    canDoubleJump = false;
+    isOnGround = true; // Grounded on spawn platform
+    canDoubleJump = true; // Can air jump
     moveInput = 0.0;
     isJumpHeld = false;
-    _coyoteTimer = 0.0;
+    _coyoteTimer = 0.10; // Immediate coyote leniency
     _jumpBufferTimer = 0.0;
   }
 
@@ -196,23 +207,100 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       velocity.y = GameConstants.maxFallSpeed;
     }
 
+    // Active TriggerZone sweep check to prevent high-speed tunneling through triggers
+    final stage = game.currentStage;
+    if (stage != null) {
+      final pRect = toRect();
+      final zones = stage.triggerZones.isNotEmpty
+          ? stage.triggerZones
+          : stage.children.whereType<TriggerZone>();
+      for (final zone in zones) {
+        if (zone.toRect().overlaps(pRect)) {
+          zone.activate();
+        }
+      }
+    }
+
     // Move & resolve collisions with solid blocks
     _moveWithCollisions(dt);
+  }
+
+  bool _hasBlockAbove(PlatformBlock block, List<PlatformBlock> blocks) {
+    final bRect = block.toRect();
+    return blocks.any((other) {
+      if (other == block) return false;
+      final oRect = other.toRect();
+      return (oRect.bottom - bRect.top).abs() < 1.0 &&
+          oRect.left < bRect.right - 2.0 &&
+          oRect.right > bRect.left + 2.0;
+    });
+  }
+
+  bool _hasBlockBelow(PlatformBlock block, List<PlatformBlock> blocks) {
+    final bRect = block.toRect();
+    return blocks.any((other) {
+      if (other == block) return false;
+      final oRect = other.toRect();
+      return (bRect.bottom - oRect.top).abs() < 1.0 &&
+          oRect.left < bRect.right - 2.0 &&
+          oRect.right > bRect.left + 2.0;
+    });
+  }
+
+  bool _hasBlockLeft(PlatformBlock block, List<PlatformBlock> blocks) {
+    final bRect = block.toRect();
+    return blocks.any((other) {
+      if (other == block) return false;
+      final oRect = other.toRect();
+      return (oRect.right - bRect.left).abs() < 1.0 &&
+          oRect.top < bRect.bottom - 2.0 &&
+          oRect.bottom > bRect.top + 2.0;
+    });
+  }
+
+  bool _hasBlockRight(PlatformBlock block, List<PlatformBlock> blocks) {
+    final bRect = block.toRect();
+    return blocks.any((other) {
+      if (other == block) return false;
+      final oRect = other.toRect();
+      return (bRect.right - oRect.left).abs() < 1.0 &&
+          oRect.top < bRect.bottom - 2.0 &&
+          oRect.bottom > bRect.top + 2.0;
+    });
   }
 
   void _moveWithCollisions(double dt) {
     final blocks = _getBlocks();
     final collapsingBlocks = _getCollapsingBlocks();
 
-    // Horizontal pass
+    final prevY = position.y;
+
+    // 1. Horizontal movement and collision pass
     position.x += velocity.x * dt;
 
     for (final block in blocks) {
       final blockRect = block.toRect();
       final playerRectX = toRect();
-      if (playerRectX.overlaps(blockRect)) {
-        // Only block horizontally if player vertically overlaps the block (avoids floor treated as wall)
-        if (playerRectX.bottom > blockRect.top + 1.0 && playerRectX.top < blockRect.bottom - 1.0) {
+      if (!playerRectX.overlaps(blockRect)) continue;
+
+      // Ignore internal vertical seams between adjacent floor/ceiling blocks
+      if (velocity.x > 0 && _hasBlockLeft(block, blocks)) continue;
+      if (velocity.x < 0 && _hasBlockRight(block, blocks)) continue;
+
+      final bool hasAbove = _hasBlockAbove(block, blocks);
+      final bool hasBelow = _hasBlockBelow(block, blocks);
+
+      // Check if player is above the block ledge
+      final bool wasAboveTop = !hasAbove && (prevY + height <= blockRect.top + 1.0);
+      // Ledge hop assistance: if jumping upwards and feet will reach/clear the ledge
+      final bool willClearLedge = !hasAbove &&
+          velocity.y < 0 &&
+          (prevY + velocity.y * dt + height <= blockRect.top + 6.0);
+      // If player was below the block underside
+      final bool wasBelowBottom = !hasBelow && (prevY >= blockRect.bottom - 1.0);
+
+      if (!wasAboveTop && !willClearLedge && !wasBelowBottom) {
+        if (playerRectX.bottom > blockRect.top + 3.0 && playerRectX.top < blockRect.bottom - 3.0) {
           if (velocity.x > 0) {
             position.x = blockRect.left - width;
           } else if (velocity.x < 0) {
@@ -225,11 +313,17 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
 
     // Also block horizontally against intact collapsing blocks
     for (final cBlock in collapsingBlocks) {
-      if (cBlock.isDeadly) continue;
+      if (cBlock.isFalling) continue;
       final blockRect = cBlock.toRect();
       final playerRectX = toRect();
-      if (playerRectX.overlaps(blockRect)) {
-        if (playerRectX.bottom > blockRect.top + 1.0 && playerRectX.top < blockRect.bottom - 1.0) {
+      if (!playerRectX.overlaps(blockRect)) continue;
+
+      final bool wasAboveTop = prevY + height <= blockRect.top + 1.0;
+      final bool willClearLedge = velocity.y < 0 && (prevY + velocity.y * dt + height <= blockRect.top + 6.0);
+      final bool wasBelowBottom = prevY >= blockRect.bottom - 1.0;
+
+      if (!wasAboveTop && !willClearLedge && !wasBelowBottom) {
+        if (playerRectX.bottom > blockRect.top + 3.0 && playerRectX.top < blockRect.bottom - 3.0) {
           if (velocity.x > 0) {
             position.x = blockRect.left - width;
           } else if (velocity.x < 0) {
@@ -240,7 +334,7 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       }
     }
 
-    // Vertical pass
+    // 2. Vertical movement and collision pass
     position.y += velocity.y * dt;
     isOnGround = false;
 
@@ -248,37 +342,62 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     for (final block in blocks) {
       final blockRect = block.toRect();
       final playerRectY = toRect();
-      if (playerRectY.overlaps(blockRect)) {
-        // Only land/ceiling if player horizontally overlaps the block (avoids wall sliding treated as floor)
-        if (playerRectY.right > blockRect.left + 1.0 && playerRectY.left < blockRect.right - 1.0) {
-          if (velocity.y > 0) {
-            // Landing on block
+      if (!playerRectY.overlaps(blockRect)) continue;
+
+      final bool hasAbove = _hasBlockAbove(block, blocks);
+      final bool hasBelow = _hasBlockBelow(block, blocks);
+
+      // Only land or bonk ceiling if horizontally overlapping the block
+      if (playerRectY.right > blockRect.left + 2.0 && playerRectY.left < blockRect.right - 2.0) {
+        if (velocity.y > 0 && !hasAbove) {
+          // Landing on exposed block top
+          if (prevY + height <= blockRect.top + (velocity.y * dt).abs() + 6.0) {
             position.y = blockRect.top - height;
             velocity.y = 0;
             isOnGround = true;
-          } else if (velocity.y < 0) {
-            // Ceiling hit
+          }
+        } else if (velocity.y < 0) {
+          // Check if hitting exposed ceiling from underneath
+          if (!hasBelow && prevY >= blockRect.bottom - (velocity.y * dt).abs() - 4.0) {
             position.y = blockRect.bottom;
             velocity.y = 0;
+          } else if (!hasAbove && playerRectY.bottom <= blockRect.top + 6.0) {
+            // Ledge hop landing: jumped up and feet caught the top edge
+            position.y = blockRect.top - height;
+            velocity.y = 0;
+            isOnGround = true;
           }
+        }
+      } else if (velocity.y < 0 && !hasBelow && prevY >= blockRect.bottom - 6.0) {
+        // Corner correction on ceiling bonk:
+        // If clipping a ceiling corner by <= 4 pixels, nudge horizontally to glide past
+        if (playerRectY.right <= blockRect.left + 4.0 && velocity.x <= 0) {
+          position.x = blockRect.left - width;
+        } else if (playerRectY.left >= blockRect.right - 4.0 && velocity.x >= 0) {
+          position.x = blockRect.right;
         }
       }
     }
 
-    // Check collapsing blocks (only when intact and not deadly)
+    // Check collapsing blocks (only when intact and not falling)
     for (final cBlock in collapsingBlocks) {
-      if (cBlock.isDeadly) continue;
+      if (cBlock.isFalling) continue;
       final cRect = cBlock.toRect();
       final playerRectY = toRect();
-      if (playerRectY.overlaps(cRect)) {
-        if (playerRectY.right > cRect.left + 1.0 &&
-            playerRectY.left < cRect.right - 1.0 &&
-            velocity.y > 0 &&
-            position.y + height - velocity.y * dt <= cRect.top + 8) {
+      if (!playerRectY.overlaps(cRect)) continue;
+
+      if (playerRectY.right > cRect.left + 2.0 &&
+          playerRectY.left < cRect.right - 2.0) {
+        if (velocity.y > 0 && prevY + height <= cRect.top + (velocity.y * dt).abs() + 6.0) {
           position.y = cRect.top - height;
           velocity.y = 0;
           isOnGround = true;
           cBlock.trigger(); // Trigger collapse
+        } else if (velocity.y < 0 && playerRectY.bottom <= cRect.top + 6.0) {
+          position.y = cRect.top - height;
+          velocity.y = 0;
+          isOnGround = true;
+          cBlock.trigger();
         }
       }
     }
@@ -303,6 +422,8 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
 
     if (other is HazardBase && other.isDeadly) {
       die();
+    } else if (other is TriggerZone) {
+      other.activate();
     }
   }
 

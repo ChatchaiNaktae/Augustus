@@ -22,13 +22,13 @@ class AppleHazard extends HazardBase {
   double _gravity = 0;
 
   AppleHazard({
-    required Vector2 position,
+    required super.position,
     this.behavior = AppleBehavior.staticItem,
     this.customLaunchVelocity,
     super.hazardId,
     double radius = 12.0,
-  })  : _initialPosition = position.clone(),
-        super(position: position, size: Vector2.all(radius * 2)) {
+  })  : _initialPosition = position!.clone(),
+        super(size: Vector2.all(radius * 2)) {
     add(CircleHitbox(radius: radius - 1));
   }
 
@@ -39,24 +39,24 @@ class AppleHazard extends HazardBase {
 
     switch (behavior) {
       case AppleBehavior.fallDown:
-        _velocity = Vector2(0, 180); // เดิม 50
-        _gravity = 2200; // เดิม 1100 (ตกเร็วขึ้น 2 เท่า)
+        _velocity = Vector2(0, 260); // High initial downward velocity
+        _gravity = 3200; // Accelerated rapid gravity drop
         break;
       case AppleBehavior.flyUp:
-        // Iconic IWBTG troll: Apple shoots UPWARD!
-        _velocity = Vector2(0, -750); // เดิม -480 (พุ่งขึ้นฟ้าไวขึ้น)
+        // Iconic IWBTG troll: Apple shoots UPWARD! (Masocore 1100 px/s)
+        _velocity = Vector2(0, -1100);
         _gravity = 0;
         break;
       case AppleBehavior.flyLeft:
-        _velocity = Vector2(-650, 0); // เดิม -380
+        _velocity = Vector2(-1050, 0); // Masocore fast rusher
         _gravity = 0;
         break;
       case AppleBehavior.flyRight:
-        _velocity = Vector2(650, 0); // เดิม 380
+        _velocity = Vector2(1050, 0); // Masocore fast rusher
         _gravity = 0;
         break;
       case AppleBehavior.customVelocity:
-        _velocity = customLaunchVelocity?.clone() ?? Vector2(0, -450);
+        _velocity = customLaunchVelocity?.clone() ?? Vector2(0, -700);
         _gravity = 0;
         break;
       case AppleBehavior.staticItem:
@@ -75,9 +75,45 @@ class AppleHazard extends HazardBase {
   @override
   void update(double dt) {
     super.update(dt);
-    if (_active) {
-      _velocity.y += _gravity * dt;
-      position += _velocity * dt;
+    if (!_active) return;
+
+    // Sub-step movement to prevent tunneling against player at high speed (> 1,000 px/s)
+    final moveDist = (_velocity.length + (_gravity.abs() * dt)) * dt;
+    const double maxStep = 6.0;
+    final int steps = (moveDist / maxStep).ceil().clamp(1, 24);
+    final double stepDt = dt / steps;
+
+    for (int i = 0; i < steps; i++) {
+      _velocity.y += _gravity * stepDt;
+      position += _velocity * stepDt;
+
+      if (isDeadly) {
+        _checkPlayerCollision();
+        if (!isDeadly || !_active) break;
+      }
+    }
+  }
+
+  void _checkPlayerCollision() {
+    try {
+      final player = game.player;
+      if (player == null || !player.isAlive) return;
+
+      final pRect = player.hitboxRect;
+      final center = position + size / 2;
+      final radius = width / 2 - 1;
+
+      // Circle vs player hitbox distance check
+      final closestX = center.x.clamp(pRect.left, pRect.right);
+      final closestY = center.y.clamp(pRect.top, pRect.bottom);
+      final dx = center.x - closestX;
+      final dy = center.y - closestY;
+
+      if (dx * dx + dy * dy <= radius * radius) {
+        player.die();
+      }
+    } catch (_) {
+      // In case component is detached from game tree during update
     }
   }
 

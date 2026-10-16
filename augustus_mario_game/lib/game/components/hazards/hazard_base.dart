@@ -1,15 +1,17 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import '../../iwbtg_game.dart';
 
-abstract class HazardBase extends PositionComponent with CollisionCallbacks {
+abstract class HazardBase extends PositionComponent
+    with CollisionCallbacks, HasGameReference<IWBTGGame> {
   final String hazardId;
   bool isDeadly = true;
 
   HazardBase({
-    required Vector2 position,
-    required Vector2 size,
+    required super.position,
+    required super.size,
     this.hazardId = '',
-  }) : super(position: position, size: size);
+  });
 
   void trigger() {}
   void reset() {}

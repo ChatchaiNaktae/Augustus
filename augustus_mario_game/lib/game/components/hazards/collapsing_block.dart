@@ -13,13 +13,14 @@ class CollapsingBlock extends HazardBase {
   double _fallSpeed = 0.0;
   final Random _rng = Random();
 
+  bool get isFalling => _isFalling;
+
   CollapsingBlock({
-    required Vector2 position,
-    required Vector2 size,
+    required super.position,
+    required super.size,
     super.hazardId,
-  })  : _initialPosition = position.clone(),
-        super(position: position, size: size) {
-    isDeadly = false; // Initially acts as a platform, not deadly until falling/crumbling
+  })  : _initialPosition = position!.clone() {
+    isDeadly = false; // Collapsing blocks crumble and fall; they do not kill the player directly
     add(RectangleHitbox());
   }
 
@@ -50,7 +51,7 @@ class CollapsingBlock extends HazardBase {
       position.x = _initialPosition.x + (_rng.nextDouble() * 4 - 2);
       if (_shakeTimer <= 0) {
         _isFalling = true;
-        isDeadly = true; // Deadly while plunging down
+        isDeadly = false; // Player falls down with gravity, not killed by the block
       }
     } else if (_isFalling) {
       _fallSpeed += 1200 * dt;

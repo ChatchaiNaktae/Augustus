@@ -92,7 +92,7 @@ class Stage3Leap extends StageBase {
     final dropSpike = SpikeHazard(
       position: Vector2(550, 32),
       direction: SpikeDirection.down,
-      triggerVelocity: Vector2(0, 850), // เดิม 550
+      triggerVelocity: Vector2(0, 1250), // Masocore hyper-drop (เดิม 850)
       hazardId: "spike_altar_drop",
     );
     add(dropSpike);
@@ -108,7 +108,7 @@ class Stage3Leap extends StageBase {
     final trollSpike = SpikeHazard(
       position: Vector2(670, 468),
       direction: SpikeDirection.up,
-      triggerVelocity: Vector2(0, -750), // เดิม -420
+      triggerVelocity: Vector2(0, -1150), // Masocore rapid ambush (เดิม -750)
       hazardId: "spike_trophy_troll",
     );
     add(trollSpike);

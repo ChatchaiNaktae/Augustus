@@ -15,8 +15,7 @@ class _BloodDrop {
     required this.velocity,
     required this.size,
     required this.color,
-    this.alpha = 1.0,
-  });
+  }) : alpha = 1.0;
 }
 
 class BloodParticleSystem extends PositionComponent {

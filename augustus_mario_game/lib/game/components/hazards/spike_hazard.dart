@@ -15,14 +15,14 @@ class SpikeHazard extends HazardBase {
   bool _active = false;
 
   SpikeHazard({
-    required Vector2 position,
+    required super.position,
     this.direction = SpikeDirection.up,
     this.triggerVelocity,
     this.isTriggered = false,
     super.hazardId,
     double size = 32.0,
-  })  : _initialPosition = position.clone(),
-        super(position: position, size: Vector2.all(size)) {
+  })  : _initialPosition = position!.clone(),
+        super(size: Vector2.all(size)) {
     // Add polygon hitbox matching the spike triangle
     add(PolygonHitbox(_getTriangleVertices()));
   }
@@ -74,8 +74,74 @@ class SpikeHazard extends HazardBase {
   @override
   void update(double dt) {
     super.update(dt);
-    if (_active && _velocity.length2 > 0) {
-      position += _velocity * dt;
+    if (!_active || _velocity.length2 == 0) return;
+
+    // Sub-step movement to prevent tunneling against player at high speed (> 1,200 px/s)
+    final moveDist = _velocity.length * dt;
+    const double maxStep = 6.0;
+    final int steps = (moveDist / maxStep).ceil().clamp(1, 24);
+    final double stepDt = dt / steps;
+
+    for (int i = 0; i < steps; i++) {
+      position += _velocity * stepDt;
+
+      if (isDeadly) {
+        _checkPlayerCollision();
+        if (!isDeadly || !_active) break;
+      }
+    }
+  }
+
+  void _checkPlayerCollision() {
+    try {
+      final player = game.player;
+      if (player == null || !player.isAlive) return;
+
+      final pRect = player.hitboxRect;
+      if (_intersectsPlayer(pRect)) {
+        player.die();
+      }
+    } catch (_) {
+      // In case component is detached from game tree during update
+    }
+  }
+
+  bool _intersectsPlayer(Rect pRect) {
+    final sRect = toRect();
+    if (!sRect.overlaps(pRect)) return false;
+
+    final xMin = sRect.left > pRect.left ? sRect.left : pRect.left;
+    final xMax = sRect.right < pRect.right ? sRect.right : pRect.right;
+    final yMin = sRect.top > pRect.top ? sRect.top : pRect.top;
+    final yMax = sRect.bottom < pRect.bottom ? sRect.bottom : pRect.bottom;
+
+    final centerX = sRect.left + sRect.width / 2;
+    final centerY = sRect.top + sRect.height / 2;
+
+    switch (direction) {
+      case SpikeDirection.up:
+        // Tip at top (centerX, sRect.top), base at bottom sRect.bottom.
+        // Triangle width increases with y; max width in [yMin, yMax] is at yMax.
+        final maxW = ((yMax - sRect.top) / sRect.height) * (sRect.width / 2);
+        return pRect.right >= centerX - maxW && pRect.left <= centerX + maxW;
+
+      case SpikeDirection.down:
+        // Tip at bottom (centerX, sRect.bottom), base at top sRect.top.
+        // Triangle width increases as y decreases; max width in [yMin, yMax] is at yMin.
+        final maxW = ((sRect.bottom - yMin) / sRect.height) * (sRect.width / 2);
+        return pRect.right >= centerX - maxW && pRect.left <= centerX + maxW;
+
+      case SpikeDirection.left:
+        // Tip at left (sRect.left, centerY), base at right sRect.right.
+        // Triangle height increases as x increases; max height in [xMin, xMax] is at xMax.
+        final maxH = ((xMax - sRect.left) / sRect.width) * (sRect.height / 2);
+        return pRect.bottom >= centerY - maxH && pRect.top <= centerY + maxH;
+
+      case SpikeDirection.right:
+        // Tip at right (sRect.right, centerY), base at left sRect.left.
+        // Triangle height increases as x decreases; max height in [xMin, xMax] is at xMin.
+        final maxH = ((sRect.right - xMin) / sRect.width) * (sRect.height / 2);
+        return pRect.bottom >= centerY - maxH && pRect.top <= centerY + maxH;
     }
   }
 

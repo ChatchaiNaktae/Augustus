@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\Chatchai_08\\Downloads\\Augustus\\.archify\\architecture-augustus-runtime-20261016-112500\\candidate.json",
+    "sha256": "b947bac6ac03300d40b6934226ed8cb9a292206a5b48aee13220c9b622b42b40",
+    "bytes": 14344
+  },
+  "artifact": {
+    "path": "C:\\Users\\Chatchai_08\\Downloads\\Augustus\\.archify\\architecture-augustus-runtime-20261016-112500\\augustus-runtime.html",
+    "sha256": "140ba66275ad1d657578c024a37fa86bf67067e23aec1dfad0182640466d276e",
+    "bytes": 840392
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\Chatchai_08\\Downloads\\Augustus\\.archify\\architecture-augustus-runtime-20261016-112500\\augustus-runtime.finalize.json",
+    "summaryReceipt": "C:\\Users\\Chatchai_08\\Downloads\\Augustus\\.archify\\architecture-augustus-runtime-20261016-112500\\augustus-runtime.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\Chatchai_08\\Downloads\\Augustus\\.archify\\architecture-augustus-runtime-20261016-112500\\augustus-runtime.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-16T04:28:33.707Z",
+    "source": "network",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3697
+}
