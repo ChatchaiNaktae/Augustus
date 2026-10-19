@@ -86,22 +86,34 @@ class Stage1Orchard extends StageBase {
       onTrigger: () => appleA.trigger(),
     ));
 
-    // Trap 2: Hidden Pop-up Spike inside Platform 2 (480, 420)
-    // Concealed completely until player steps onto the platform, then rockets upward!
-    final platform2Spike = SpikeHazard(
+    // Trap 2: Hidden Pop-up Spikes inside Platform 2 (480, 420)
+    // Concealed completely until player steps onto the right side of the platform, then rocket upward!
+    final platform2SpikeCenter = SpikeHazard(
       position: Vector2(514, 420),
       direction: SpikeDirection.up,
       triggerVelocity: Vector2(0, -950),
       isHidden: true,
       hazardId: "spike_platform_hidden",
     );
-    add(platform2Spike);
+    add(platform2SpikeCenter);
 
-    // Triggers when player steps onto Platform 2
+    final platform2SpikeRight = SpikeHazard(
+      position: Vector2(548, 420),
+      direction: SpikeDirection.up,
+      triggerVelocity: Vector2(0, -950),
+      isHidden: true,
+      hazardId: "spike_platform_hidden_right",
+    );
+    add(platform2SpikeRight);
+
+    // Triggers when player steps onto the right side of Platform 2 (width matches right spike: 32px)
     add(TriggerZone(
-      position: Vector2(480, 400),
-      size: Vector2(100, 22),
-      onTrigger: () => platform2Spike.trigger(),
+      position: Vector2(548, 395),
+      size: Vector2(32, 25),
+      onTrigger: () {
+        platform2SpikeCenter.trigger();
+        platform2SpikeRight.trigger();
+      },
     ));
 
     // Trap 3: Off-Screen Horizon Rusher
@@ -133,17 +145,24 @@ class Stage1Orchard extends StageBase {
     );
     add(stoneRusherSpike);
 
-    // Triggers when player stands on the mid-pit stepping stone (x: 310-380, y: 435-460)
+    // Left flank trigger: x: 310 to 325 (width: 15, does not overlap vertical zone at 325..345)
     add(TriggerZone(
       position: Vector2(310, 435),
-      size: Vector2(70, 25),
+      size: Vector2(15, 25),
+      onTrigger: () => stoneRusherSpike.trigger(),
+    ));
+
+    // Right flank trigger: x: 345 to 380 (width: 35, does not overlap vertical zone at 325..345)
+    add(TriggerZone(
+      position: Vector2(345, 435),
+      size: Vector2(35, 25),
       onTrigger: () => stoneRusherSpike.trigger(),
     ));
 
     // Trap 5: Sliding Platform Spike with Two-Way Return!
     // Sits directly ON TOP of platform 620,340 at (688, 308).
-    // Phase 1: Slides left to x=620 on approach (tuned to 450 px/s for fair dodge).
-    // Phase 2: Slides BACK to x=688 when player dodges and steps on the right side (480 px/s)!
+    // Phase 1: Slides left to x=620 on approach (slowed down 75% to 115 px/s for fair dodge).
+    // Phase 2: Slides BACK to x=688 when player dodges and steps on the right side (120 px/s)!
     final platformSpike = SpikeHazard(
       position: Vector2(688, 308),
       direction: SpikeDirection.up,
@@ -156,14 +175,14 @@ class Stage1Orchard extends StageBase {
     add(TriggerZone(
       position: Vector2(590, 260),
       size: Vector2(35, 90),
-      onTrigger: () => platformSpike.slideTo(620.0, speed: 450),
+      onTrigger: () => platformSpike.slideTo(620.0, speed: 115),
     ));
 
     // Phase 2 Trigger: Player steps onto the right side of platform 620,340 (x: 665-720)
     add(TriggerZone(
       position: Vector2(665, 310),
       size: Vector2(55, 32),
-      onTrigger: () => platformSpike.slideTo(688.0, speed: 480),
+      onTrigger: () => platformSpike.slideTo(688.0, speed: 120),
     ));
 
     // Trap 6: Troll Ceiling Drop right before the exit on the high platform!

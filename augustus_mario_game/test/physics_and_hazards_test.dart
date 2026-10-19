@@ -381,16 +381,16 @@ void main() {
       expect(sliderSpike.position.y, equals(308.0));
       expect(sliderSpike.direction, equals(SpikeDirection.up));
 
-      // Phase 1: Slides across platform to the left (target 620.0 at tuned speed 450)
-      sliderSpike.slideTo(620.0, speed: 450);
+      // Phase 1: Slides across platform to the left (target 620.0 at tuned speed 115)
+      sliderSpike.slideTo(620.0, speed: 115);
       for (int i = 0; i < 60; i++) {
         sliderSpike.update(0.016);
       }
       expect(sliderSpike.position.x, equals(620.0));
       expect(sliderSpike.position.y, equals(308.0));
 
-      // Phase 2: Player steps on right side -> slides back to the right (target 688.0 at speed 480)
-      sliderSpike.slideTo(688.0, speed: 480);
+      // Phase 2: Player steps on right side -> slides back to the right (target 688.0 at speed 120)
+      sliderSpike.slideTo(688.0, speed: 120);
       for (int i = 0; i < 60; i++) {
         sliderSpike.update(0.016);
       }
@@ -398,26 +398,44 @@ void main() {
       expect(sliderSpike.position.y, equals(308.0));
     });
 
-    test('Stage 1 has hidden pop-up spike inside Platform 2 (480, 420)', () async {
+    test('Stage 1 has hidden pop-up spikes inside Platform 2 (480, 420) with 32px trigger on right', () async {
       final stage = Stage1Orchard();
       await stage.onLoad();
 
-      final hiddenSpike = stage.hazards
+      final hiddenSpikeCenter = stage.hazards
           .whereType<SpikeHazard>()
           .firstWhere((s) => s.hazardId == 'spike_platform_hidden');
+      final hiddenSpikeRight = stage.hazards
+          .whereType<SpikeHazard>()
+          .firstWhere((s) => s.hazardId == 'spike_platform_hidden_right');
 
-      expect(hiddenSpike.isHidden, isTrue);
-      expect(hiddenSpike.isDeadly, isFalse);
-      expect(hiddenSpike.position.x, equals(514.0));
-      expect(hiddenSpike.position.y, equals(420.0));
+      expect(hiddenSpikeCenter.isHidden, isTrue);
+      expect(hiddenSpikeCenter.isDeadly, isFalse);
+      expect(hiddenSpikeCenter.position.x, equals(514.0));
+      expect(hiddenSpikeCenter.position.y, equals(420.0));
+
+      expect(hiddenSpikeRight.isHidden, isTrue);
+      expect(hiddenSpikeRight.isDeadly, isFalse);
+      expect(hiddenSpikeRight.position.x, equals(548.0));
+      expect(hiddenSpikeRight.position.y, equals(420.0));
+
+      // Trigger zone matches right spike width (32px) and position (548)
+      final platform2Trigger = stage.triggerZones.firstWhere(
+        (z) => z.position.x == 548.0 && z.position.y == 395.0,
+      );
+      expect(platform2Trigger.size.x, equals(32.0));
 
       // Trigger pop-up
-      hiddenSpike.trigger();
-      expect(hiddenSpike.isHidden, isFalse);
-      expect(hiddenSpike.isDeadly, isTrue);
+      platform2Trigger.activate();
+      expect(hiddenSpikeCenter.isHidden, isFalse);
+      expect(hiddenSpikeRight.isHidden, isFalse);
+      expect(hiddenSpikeCenter.isDeadly, isTrue);
+      expect(hiddenSpikeRight.isDeadly, isTrue);
 
-      hiddenSpike.update(0.016);
-      expect(hiddenSpike.position.y, lessThan(420.0));
+      hiddenSpikeCenter.update(0.016);
+      hiddenSpikeRight.update(0.016);
+      expect(hiddenSpikeCenter.position.y, lessThan(420.0));
+      expect(hiddenSpikeRight.position.y, lessThan(420.0));
     });
 
     test('Stage 1 has off-screen horizon rusher spike shooting left across map', () async {
@@ -488,6 +506,17 @@ void main() {
       stoneRusher.trigger();
       stoneRusher.update(0.016);
       expect(stoneRusher.position.x, greaterThan(-40.0));
+
+      // Verify flanking trigger zones on stepping stone (310, 460) do not overlap vertical zone at 325..345
+      final leftTrigger = stage.triggerZones.firstWhere(
+        (z) => z.position.x == 310.0 && z.position.y == 435.0,
+      );
+      expect(leftTrigger.size.x, equals(15.0));
+
+      final rightTrigger = stage.triggerZones.firstWhere(
+        (z) => z.position.x == 345.0 && z.position.y == 435.0,
+      );
+      expect(rightTrigger.size.x, equals(35.0));
     });
   });
 
