@@ -13,6 +13,9 @@ class SpikeHazard extends HazardBase {
   final Vector2? triggerVelocity;
   final bool isTriggered;
   final double? stopAtX;
+  double? _stopAtX;
+  bool isHidden;
+  final bool _initialHidden;
   final Vector2 _initialPosition;
   Vector2 _velocity = Vector2.zero();
   bool _active = false;
@@ -23,10 +26,16 @@ class SpikeHazard extends HazardBase {
     this.triggerVelocity,
     this.isTriggered = false,
     this.stopAtX,
+    this.isHidden = false,
     super.hazardId,
     double size = 32.0,
   })  : _initialPosition = position!.clone(),
+        _initialHidden = isHidden,
+        _stopAtX = stopAtX,
         super(size: Vector2.all(size)) {
+    if (isHidden) {
+      isDeadly = false;
+    }
     // Add polygon hitbox matching the spike triangle
     add(PolygonHitbox(_getTriangleVertices()));
   }
@@ -74,9 +83,27 @@ class SpikeHazard extends HazardBase {
 
   @override
   void trigger() {
+    if (isHidden) {
+      isHidden = false;
+      isDeadly = true;
+    }
     if (triggerVelocity != null && !_active) {
       _active = true;
       _velocity = triggerVelocity!.clone();
+    }
+  }
+
+  void slideTo(double targetX, {double speed = 850}) {
+    if (isHidden) {
+      isHidden = false;
+      isDeadly = true;
+    }
+    _active = true;
+    _stopAtX = targetX;
+    if (targetX < position.x) {
+      _velocity = Vector2(-speed, 0);
+    } else {
+      _velocity = Vector2(speed, 0);
     }
   }
 
@@ -85,6 +112,9 @@ class SpikeHazard extends HazardBase {
     position.setFrom(_initialPosition);
     _velocity.setZero();
     _active = false;
+    _stopAtX = stopAtX;
+    isHidden = _initialHidden;
+    isDeadly = !_initialHidden;
   }
 
   @override
@@ -101,12 +131,12 @@ class SpikeHazard extends HazardBase {
     for (int i = 0; i < steps; i++) {
       position += _velocity * stepDt;
 
-      if (stopAtX != null) {
-        if (_velocity.x < 0 && position.x <= stopAtX!) {
-          position.x = stopAtX!;
+      if (_stopAtX != null) {
+        if (_velocity.x < 0 && position.x <= _stopAtX!) {
+          position.x = _stopAtX!;
           _velocity.setZero();
-        } else if (_velocity.x > 0 && position.x >= stopAtX!) {
-          position.x = stopAtX!;
+        } else if (_velocity.x > 0 && position.x >= _stopAtX!) {
+          position.x = _stopAtX!;
           _velocity.setZero();
         }
       }
@@ -173,6 +203,7 @@ class SpikeHazard extends HazardBase {
 
   @override
   void render(Canvas canvas) {
+    if (isHidden) return;
     super.render(canvas);
 
     if (_sprite != null) {

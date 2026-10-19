@@ -357,29 +357,18 @@ void main() {
       expect(rightmostSpike.position.x + rightmostSpike.width, equals(420.0));
     });
 
-    test('Stage 1 apple under tree launches left when player is on left, and right when player is on right', () async {
+    test('Stage 1 tree apple is removed', () async {
       final stage = Stage1Orchard();
       await stage.onLoad();
 
-      final treeApple = stage.hazards
+      final hasTreeApple = stage.hazards
           .whereType<AppleHazard>()
-          .firstWhere((a) => a.hazardId == 'apple_tree_rusher');
+          .any((a) => a.hazardId == 'apple_tree_rusher');
 
-      expect(treeApple.position.x, closeTo(205.0, 5.0));
-
-      // Test launch left
-      treeApple.launchTowards(150.0);
-      treeApple.update(0.016);
-      expect(treeApple.position.x, lessThan(205.0));
-
-      // Reset and test launch right
-      treeApple.reset();
-      treeApple.launchTowards(230.0);
-      treeApple.update(0.016);
-      expect(treeApple.position.x, greaterThan(205.0));
+      expect(hasTreeApple, isFalse);
     });
 
-    test('Stage 1 has sliding spike on platform 3 resting on platform surface at (688, 308)', () async {
+    test('Stage 1 has two-way sliding spike on platform 3 (slides left to 620, then returns to 688)', () async {
       final stage = Stage1Orchard();
       await stage.onLoad();
 
@@ -390,18 +379,65 @@ void main() {
       // Resting on platform (620, 340) surface: y = 308, x = 688
       expect(sliderSpike.position.x, equals(688.0));
       expect(sliderSpike.position.y, equals(308.0));
-      expect(sliderSpike.stopAtX, equals(620.0));
       expect(sliderSpike.direction, equals(SpikeDirection.up));
 
-      // Trigger sliding across platform to the left
-      sliderSpike.trigger();
+      // Phase 1: Slides across platform to the left (target 620.0)
+      sliderSpike.slideTo(620.0, speed: 850);
       for (int i = 0; i < 60; i++) {
         sliderSpike.update(0.016);
       }
-
-      // Must have stopped exactly at stopAtX (620.0)
       expect(sliderSpike.position.x, equals(620.0));
       expect(sliderSpike.position.y, equals(308.0));
+
+      // Phase 2: Player steps on right side -> slides back to the right (target 688.0)
+      sliderSpike.slideTo(688.0, speed: 950);
+      for (int i = 0; i < 60; i++) {
+        sliderSpike.update(0.016);
+      }
+      expect(sliderSpike.position.x, equals(688.0));
+      expect(sliderSpike.position.y, equals(308.0));
+    });
+
+    test('Stage 1 has hidden pop-up spike inside Platform 2 (480, 420)', () async {
+      final stage = Stage1Orchard();
+      await stage.onLoad();
+
+      final hiddenSpike = stage.hazards
+          .whereType<SpikeHazard>()
+          .firstWhere((s) => s.hazardId == 'spike_platform_hidden');
+
+      expect(hiddenSpike.isHidden, isTrue);
+      expect(hiddenSpike.isDeadly, isFalse);
+      expect(hiddenSpike.position.x, equals(514.0));
+      expect(hiddenSpike.position.y, equals(420.0));
+
+      // Trigger pop-up
+      hiddenSpike.trigger();
+      expect(hiddenSpike.isHidden, isFalse);
+      expect(hiddenSpike.isDeadly, isTrue);
+
+      hiddenSpike.update(0.016);
+      expect(hiddenSpike.position.y, lessThan(420.0));
+    });
+
+    test('Stage 1 has off-screen horizon rusher spike shooting left across map', () async {
+      final stage = Stage1Orchard();
+      await stage.onLoad();
+
+      final rusher = stage.hazards
+          .whereType<SpikeHazard>()
+          .firstWhere((s) => s.hazardId == 'spike_offscreen_rusher');
+
+      // Placed off-screen to the right at player body height
+      expect(rusher.position.x, equals(832.0));
+      expect(rusher.position.y, equals(536.0));
+      expect(rusher.direction, equals(SpikeDirection.left));
+      expect(rusher.triggerVelocity!.x, lessThan(-1000.0));
+
+      // Trigger and verify it moves left
+      rusher.trigger();
+      rusher.update(0.016);
+      expect(rusher.position.x, lessThan(832.0));
     });
 
     test('Stage 1 pit rocket spike is disguised at y=568 and launches upward', () async {

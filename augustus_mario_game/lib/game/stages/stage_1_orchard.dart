@@ -86,43 +86,66 @@ class Stage1Orchard extends StageBase {
       onTrigger: () => appleA.trigger(),
     ));
 
-    // Trap 2: Dynamic Directional Ambush Apple under tree!
-    // Senses player position: if player is to the left, shoots left; if to the right, shoots right!
-    final appleA2 = AppleHazard(
-      position: Vector2(205, 416),
-      hazardId: "apple_tree_rusher",
+    // Trap 2: Hidden Pop-up Spike inside Platform 2 (480, 420)
+    // Concealed completely until player steps onto the platform, then rockets upward!
+    final platform2Spike = SpikeHazard(
+      position: Vector2(514, 420),
+      direction: SpikeDirection.up,
+      triggerVelocity: Vector2(0, -950),
+      isHidden: true,
+      hazardId: "spike_platform_hidden",
     );
-    add(appleA2);
+    add(platform2Spike);
 
+    // Triggers when player steps onto Platform 2
     add(TriggerZone(
-      position: Vector2(130, 380),
-      size: Vector2(110, 60),
-      onTrigger: () {
-        final player = game.player;
-        if (player != null) {
-          appleA2.launchTowards(player.position.x, speed: 1050);
-        } else {
-          appleA2.trigger();
-        }
-      },
+      position: Vector2(480, 400),
+      size: Vector2(100, 22),
+      onTrigger: () => platform2Spike.trigger(),
     ));
 
-    // Trap 4: Sliding Platform Spike (Sits directly ON TOP of platform 620,340 at x=688, y=308)
-    // When player approaches, slides left across the platform and stops at the leftmost edge (x=620)!
+    // Trap 3: Off-Screen Horizon Rusher
+    // Concealed off-screen to the right (x=832, y=536). When player lands on the right floor edge
+    // after leaping across the pit, this spike zooms horizontally across the entire map from right to left!
+    final offscreenSpike = SpikeHazard(
+      position: Vector2(832, 536),
+      direction: SpikeDirection.left,
+      triggerVelocity: Vector2(-1250, 0),
+      hazardId: "spike_offscreen_rusher",
+    );
+    add(offscreenSpike);
+
+    // Triggers when player lands on right floor edge (x: 420-455, y: 520-570)
+    add(TriggerZone(
+      position: Vector2(420, 520),
+      size: Vector2(35, 50),
+      onTrigger: () => offscreenSpike.trigger(),
+    ));
+
+    // Trap 4: Sliding Platform Spike with Two-Way Return!
+    // Sits directly ON TOP of platform 620,340 at (688, 308).
+    // Phase 1: Slides left to x=620 on approach.
+    // Phase 2: Slides BACK to x=688 when player dodges and steps on the right side!
     final platformSpike = SpikeHazard(
       position: Vector2(688, 308),
       direction: SpikeDirection.up,
-      triggerVelocity: Vector2(-850, 0),
       stopAtX: 620.0,
       hazardId: "spike_platform_slider",
     );
     add(platformSpike);
 
-    // Point-blank trigger on jump approach to platform 620,340
+    // Phase 1 Trigger: Player approaches platform 620,340 from left
     add(TriggerZone(
       position: Vector2(590, 260),
       size: Vector2(35, 90),
-      onTrigger: () => platformSpike.trigger(),
+      onTrigger: () => platformSpike.slideTo(620.0, speed: 850),
+    ));
+
+    // Phase 2 Trigger: Player steps onto the right side of platform 620,340 (x: 665-720)
+    add(TriggerZone(
+      position: Vector2(665, 310),
+      size: Vector2(55, 32),
+      onTrigger: () => platformSpike.slideTo(688.0, speed: 950),
     ));
 
     // Trap 5: Troll Ceiling Drop right before the exit on the high platform!
