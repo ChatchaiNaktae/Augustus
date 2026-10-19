@@ -72,6 +72,31 @@ class AppleHazard extends HazardBase {
     }
   }
 
+  void launchTowards(double targetX, {double speed = 1050}) {
+    if (_active) return;
+    _active = true;
+    _gravity = 0;
+    if (targetX < position.x) {
+      _velocity = Vector2(-speed, 0);
+    } else {
+      _velocity = Vector2(speed, 0);
+    }
+  }
+
+  void launchLeft({double speed = 1050}) {
+    if (_active) return;
+    _active = true;
+    _gravity = 0;
+    _velocity = Vector2(-speed, 0);
+  }
+
+  void launchRight({double speed = 1050}) {
+    if (_active) return;
+    _active = true;
+    _gravity = 0;
+    _velocity = Vector2(speed, 0);
+  }
+
   @override
   void reset() {
     position.setFrom(_initialPosition);

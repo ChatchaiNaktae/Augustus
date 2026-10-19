@@ -12,6 +12,7 @@ class SpikeHazard extends HazardBase {
   final SpikeDirection direction;
   final Vector2? triggerVelocity;
   final bool isTriggered;
+  final double? stopAtX;
   final Vector2 _initialPosition;
   Vector2 _velocity = Vector2.zero();
   bool _active = false;
@@ -21,6 +22,7 @@ class SpikeHazard extends HazardBase {
     this.direction = SpikeDirection.up,
     this.triggerVelocity,
     this.isTriggered = false,
+    this.stopAtX,
     super.hazardId,
     double size = 32.0,
   })  : _initialPosition = position!.clone(),
@@ -98,6 +100,16 @@ class SpikeHazard extends HazardBase {
 
     for (int i = 0; i < steps; i++) {
       position += _velocity * stepDt;
+
+      if (stopAtX != null) {
+        if (_velocity.x < 0 && position.x <= stopAtX!) {
+          position.x = stopAtX!;
+          _velocity.setZero();
+        } else if (_velocity.x > 0 && position.x >= stopAtX!) {
+          position.x = stopAtX!;
+          _velocity.setZero();
+        }
+      }
 
       if (isDeadly) {
         _checkPlayerCollision();

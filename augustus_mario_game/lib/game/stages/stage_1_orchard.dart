@@ -86,33 +86,43 @@ class Stage1Orchard extends StageBase {
       onTrigger: () => appleA.trigger(),
     ));
 
-    // Trap 2: Apple under tree rushes right! (flyRight)
+    // Trap 2: Dynamic Directional Ambush Apple under tree!
+    // Senses player position: if player is to the left, shoots left; if to the right, shoots right!
     final appleA2 = AppleHazard(
       position: Vector2(205, 416),
-      behavior: AppleBehavior.flyRight,
       hazardId: "apple_tree_rusher",
     );
     add(appleA2);
 
     add(TriggerZone(
-      position: Vector2(145, 410),
-      size: Vector2(25, 30),
-      onTrigger: () => appleA2.trigger(),
+      position: Vector2(130, 380),
+      size: Vector2(110, 60),
+      onTrigger: () {
+        final player = game.player;
+        if (player != null) {
+          appleA2.launchTowards(player.position.x, speed: 1050);
+        } else {
+          appleA2.trigger();
+        }
+      },
     ));
 
-    // Trap 4: Horizontal Ambush Apple rushing left when player lands point-blank on platform 620,340
-    final appleC = AppleHazard(
-      position: Vector2(720, 335),
-      behavior: AppleBehavior.flyLeft,
-      hazardId: "apple_rusher_1",
+    // Trap 4: Sliding Platform Spike (Sits directly ON TOP of platform 620,340 at x=688, y=308)
+    // When player approaches, slides left across the platform and stops at the leftmost edge (x=620)!
+    final platformSpike = SpikeHazard(
+      position: Vector2(688, 308),
+      direction: SpikeDirection.up,
+      triggerVelocity: Vector2(-850, 0),
+      stopAtX: 620.0,
+      hazardId: "spike_platform_slider",
     );
-    add(appleC);
+    add(platformSpike);
 
-    // Point-blank trigger on platform edge (x: 630-648)
+    // Point-blank trigger on jump approach to platform 620,340
     add(TriggerZone(
-      position: Vector2(630, 315),
-      size: Vector2(18, 25),
-      onTrigger: () => appleC.trigger(),
+      position: Vector2(590, 260),
+      size: Vector2(35, 90),
+      onTrigger: () => platformSpike.trigger(),
     ));
 
     // Trap 5: Troll Ceiling Drop right before the exit on the high platform!

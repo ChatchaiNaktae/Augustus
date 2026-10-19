@@ -357,7 +357,7 @@ void main() {
       expect(rightmostSpike.position.x + rightmostSpike.width, equals(420.0));
     });
 
-    test('Stage 1 apple under tree has behavior flyRight', () async {
+    test('Stage 1 apple under tree launches left when player is on left, and right when player is on right', () async {
       final stage = Stage1Orchard();
       await stage.onLoad();
 
@@ -365,8 +365,43 @@ void main() {
           .whereType<AppleHazard>()
           .firstWhere((a) => a.hazardId == 'apple_tree_rusher');
 
-      expect(treeApple.behavior, equals(AppleBehavior.flyRight));
       expect(treeApple.position.x, closeTo(205.0, 5.0));
+
+      // Test launch left
+      treeApple.launchTowards(150.0);
+      treeApple.update(0.016);
+      expect(treeApple.position.x, lessThan(205.0));
+
+      // Reset and test launch right
+      treeApple.reset();
+      treeApple.launchTowards(230.0);
+      treeApple.update(0.016);
+      expect(treeApple.position.x, greaterThan(205.0));
+    });
+
+    test('Stage 1 has sliding spike on platform 3 resting on platform surface at (688, 308)', () async {
+      final stage = Stage1Orchard();
+      await stage.onLoad();
+
+      final sliderSpike = stage.hazards
+          .whereType<SpikeHazard>()
+          .firstWhere((s) => s.hazardId == 'spike_platform_slider');
+
+      // Resting on platform (620, 340) surface: y = 308, x = 688
+      expect(sliderSpike.position.x, equals(688.0));
+      expect(sliderSpike.position.y, equals(308.0));
+      expect(sliderSpike.stopAtX, equals(620.0));
+      expect(sliderSpike.direction, equals(SpikeDirection.up));
+
+      // Trigger sliding across platform to the left
+      sliderSpike.trigger();
+      for (int i = 0; i < 60; i++) {
+        sliderSpike.update(0.016);
+      }
+
+      // Must have stopped exactly at stopAtX (620.0)
+      expect(sliderSpike.position.x, equals(620.0));
+      expect(sliderSpike.position.y, equals(308.0));
     });
 
     test('Stage 1 pit rocket spike is disguised at y=568 and launches upward', () async {
