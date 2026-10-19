@@ -9,6 +9,8 @@ class TriggerZone extends PositionComponent with CollisionCallbacks {
   final bool triggerOnce;
   bool _hasTriggered = false;
 
+  bool get hasTriggered => _hasTriggered;
+
   TriggerZone({
     required super.position,
     required super.size,

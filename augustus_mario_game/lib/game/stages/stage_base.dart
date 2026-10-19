@@ -134,5 +134,29 @@ abstract class StageBase extends Component with HasGameReference<IWBTGGame> {
         canvas.drawCircle(center, hazard.radius - 1, strokePaint);
       }
     }
+
+    // Render Trigger Zone bounds (Cyan for active/armed, Slate Blue for disarmed)
+    final Set<TriggerZone> allTriggers = {...triggerZones, ...children.whereType<TriggerZone>()};
+    for (final trigger in allTriggers) {
+      final rect = Rect.fromLTWH(
+        trigger.position.x,
+        trigger.position.y,
+        trigger.width,
+        trigger.height,
+      );
+      final bool isDisarmed = trigger.triggerOnce && trigger.hasTriggered;
+      final color = isDisarmed ? const Color(0xFF6272A4) : const Color(0xFF00E5FF);
+
+      final fillPaint = Paint()
+        ..color = color.withValues(alpha: isDisarmed ? 0.08 : 0.20)
+        ..style = PaintingStyle.fill;
+      final strokePaint = Paint()
+        ..color = color.withValues(alpha: isDisarmed ? 0.40 : 0.90)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+
+      canvas.drawRect(rect, fillPaint);
+      canvas.drawRect(rect, strokePaint);
+    }
   }
 }

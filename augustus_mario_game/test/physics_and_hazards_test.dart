@@ -527,6 +527,20 @@ void main() {
       );
       expect(apple.radius, equals(12.0));
     });
+
+    test('TriggerZone hasTriggered reflects active vs disarmed state for debug hitboxes', () {
+      final trigger = TriggerZone(
+        position: Vector2(100, 100),
+        size: Vector2(40, 40),
+        triggerOnce: true,
+      );
+
+      expect(trigger.hasTriggered, isFalse);
+      trigger.activate();
+      expect(trigger.hasTriggered, isTrue);
+      trigger.reset();
+      expect(trigger.hasTriggered, isFalse);
+    });
   });
 }
 
