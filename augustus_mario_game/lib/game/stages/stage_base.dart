@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
 import '../iwbtg_game.dart';
 import '../components/platform_block.dart';
 import '../components/hazards/hazard_base.dart';
 import '../components/hazards/collapsing_block.dart';
 import '../components/hazards/trigger_zone.dart';
+import '../components/hazards/spike_hazard.dart';
+import '../components/hazards/apple_hazard.dart';
 
 abstract class StageBase extends Component with HasGameReference<IWBTGGame> {
   final String stageName;
@@ -79,5 +82,57 @@ abstract class StageBase extends Component with HasGameReference<IWBTGGame> {
 
   void completeStage() {
     game.onStageCleared(stageIndex);
+  }
+
+  @override
+  void renderTree(Canvas canvas) {
+    super.renderTree(canvas);
+
+    if (game.showHazardHitboxes) {
+      _renderHazardHitboxes(canvas);
+    }
+  }
+
+  void _renderHazardHitboxes(Canvas canvas) {
+    final Set<HazardBase> allHazards = {...hazards, ...children.whereType<HazardBase>()};
+    for (final hazard in allHazards) {
+      if (hazard is SpikeHazard) {
+        final vertices = hazard.getTriangleVertices();
+        if (vertices.isEmpty) continue;
+        final path = Path();
+        final start = hazard.position + vertices.first;
+        path.moveTo(start.x, start.y);
+        for (int i = 1; i < vertices.length; i++) {
+          final pt = hazard.position + vertices[i];
+          path.lineTo(pt.x, pt.y);
+        }
+        path.close();
+
+        final color = hazard.isHidden ? const Color(0xFFBD93F9) : const Color(0xFF50FA7B);
+        final fillPaint = Paint()
+          ..color = color.withValues(alpha: 0.25)
+          ..style = PaintingStyle.fill;
+        final strokePaint = Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+
+        canvas.drawPath(path, fillPaint);
+        canvas.drawPath(path, strokePaint);
+      } else if (hazard is AppleHazard) {
+        final center = Offset(hazard.position.x + hazard.radius, hazard.position.y + hazard.radius);
+        final color = const Color(0xFF50FA7B);
+        final fillPaint = Paint()
+          ..color = color.withValues(alpha: 0.25)
+          ..style = PaintingStyle.fill;
+        final strokePaint = Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+
+        canvas.drawCircle(center, hazard.radius - 1, fillPaint);
+        canvas.drawCircle(center, hazard.radius - 1, strokePaint);
+      }
+    }
   }
 }

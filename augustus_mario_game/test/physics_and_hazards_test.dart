@@ -381,16 +381,16 @@ void main() {
       expect(sliderSpike.position.y, equals(308.0));
       expect(sliderSpike.direction, equals(SpikeDirection.up));
 
-      // Phase 1: Slides across platform to the left (target 620.0)
-      sliderSpike.slideTo(620.0, speed: 850);
+      // Phase 1: Slides across platform to the left (target 620.0 at tuned speed 450)
+      sliderSpike.slideTo(620.0, speed: 450);
       for (int i = 0; i < 60; i++) {
         sliderSpike.update(0.016);
       }
       expect(sliderSpike.position.x, equals(620.0));
       expect(sliderSpike.position.y, equals(308.0));
 
-      // Phase 2: Player steps on right side -> slides back to the right (target 688.0)
-      sliderSpike.slideTo(688.0, speed: 950);
+      // Phase 2: Player steps on right side -> slides back to the right (target 688.0 at speed 480)
+      sliderSpike.slideTo(688.0, speed: 480);
       for (int i = 0; i < 60; i++) {
         sliderSpike.update(0.016);
       }
@@ -468,6 +468,64 @@ void main() {
           .toList();
 
       expect(exitZones.isNotEmpty, isTrue);
+    });
+
+    test('Stage 1 has off-screen stepping stone rusher spike shooting right across map', () async {
+      final stage = Stage1Orchard();
+      await stage.onLoad();
+
+      final stoneRusher = stage.hazards
+          .whereType<SpikeHazard>()
+          .firstWhere((s) => s.hazardId == 'spike_offscreen_stepping_stone');
+
+      // Placed off-screen to the left aligned with stepping stone surface (y=428, 428+32=460)
+      expect(stoneRusher.position.x, equals(-40.0));
+      expect(stoneRusher.position.y, equals(428.0));
+      expect(stoneRusher.direction, equals(SpikeDirection.right));
+      expect(stoneRusher.triggerVelocity!.x, greaterThan(1000.0));
+
+      // Trigger and verify it moves right
+      stoneRusher.trigger();
+      stoneRusher.update(0.016);
+      expect(stoneRusher.position.x, greaterThan(-40.0));
+    });
+  });
+
+  group('Hazard Debug Hitbox Tests', () {
+    test('game.toggleHazardHitboxes() flips showHazardHitboxes and notifies listeners', () async {
+      final game = await createTestGame();
+
+      expect(game.showHazardHitboxes, isFalse);
+
+      bool notified = false;
+      game.showHazardHitboxesNotifier.addListener(() {
+        notified = true;
+      });
+
+      game.toggleHazardHitboxes();
+      expect(game.showHazardHitboxes, isTrue);
+      expect(notified, isTrue);
+
+      game.toggleHazardHitboxes();
+      expect(game.showHazardHitboxes, isFalse);
+    });
+
+    test('SpikeHazard and AppleHazard provide valid debug hitbox geometries', () async {
+      final spike = SpikeHazard(
+        position: Vector2(100, 200),
+        direction: SpikeDirection.up,
+      );
+      final vertices = spike.getTriangleVertices();
+      expect(vertices.length, equals(3));
+      // Local tip of up-pointing spike (32x32) is (16, 2)
+      expect(vertices[0], equals(Vector2(16.0, 2.0)));
+      // World position of tip: spike.position + vertices[0] = (116, 202)
+      expect(spike.position + vertices[0], equals(Vector2(116.0, 202.0)));
+
+      final apple = AppleHazard(
+        position: Vector2(50, 60),
+      );
+      expect(apple.radius, equals(12.0));
     });
   });
 }

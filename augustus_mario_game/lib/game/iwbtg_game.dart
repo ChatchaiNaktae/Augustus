@@ -27,6 +27,12 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   StageBase? currentStage;
   Player? player;
 
+  final ValueNotifier<bool> showHazardHitboxesNotifier = ValueNotifier<bool>(false);
+  bool get showHazardHitboxes => showHazardHitboxesNotifier.value;
+  void toggleHazardHitboxes() {
+    showHazardHitboxesNotifier.value = !showHazardHitboxesNotifier.value;
+  }
+
   IWBTGGame({
     this.initialStage = 1,
     this.onDeathsUpdated,
@@ -148,6 +154,10 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
           onPauseRequested?.call();
           return KeyEventResult.handled;
         }
+        if (event.logicalKey == LogicalKeyboardKey.keyH) {
+          toggleHazardHitboxes();
+          return KeyEventResult.handled;
+        }
       }
       return KeyEventResult.handled;
     }
@@ -178,6 +188,11 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
       // Instant Respawn (R)
       if (event.logicalKey == LogicalKeyboardKey.keyR) {
         respawnPlayer();
+      }
+
+      // Toggle Hazard Hitbox Debug (H)
+      if (event.logicalKey == LogicalKeyboardKey.keyH) {
+        toggleHazardHitboxes();
       }
 
       // Pause (Escape)

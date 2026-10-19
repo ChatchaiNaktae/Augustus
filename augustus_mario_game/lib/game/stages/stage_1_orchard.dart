@@ -122,10 +122,28 @@ class Stage1Orchard extends StageBase {
       onTrigger: () => offscreenSpike.trigger(),
     ));
 
-    // Trap 4: Sliding Platform Spike with Two-Way Return!
+    // Trap 4: Off-Screen Stepping Stone Rusher (Left-to-Right)
+    // Concealed off-screen to the left (x=-40, y=428). When player stands on the mid-pit stepping stone (310, 460),
+    // this spike zooms horizontally across the stepping stone surface towards the far right of the map!
+    final stoneRusherSpike = SpikeHazard(
+      position: Vector2(-40, 428),
+      direction: SpikeDirection.right,
+      triggerVelocity: Vector2(1100, 0),
+      hazardId: "spike_offscreen_stepping_stone",
+    );
+    add(stoneRusherSpike);
+
+    // Triggers when player stands on the mid-pit stepping stone (x: 310-380, y: 435-460)
+    add(TriggerZone(
+      position: Vector2(310, 435),
+      size: Vector2(70, 25),
+      onTrigger: () => stoneRusherSpike.trigger(),
+    ));
+
+    // Trap 5: Sliding Platform Spike with Two-Way Return!
     // Sits directly ON TOP of platform 620,340 at (688, 308).
-    // Phase 1: Slides left to x=620 on approach.
-    // Phase 2: Slides BACK to x=688 when player dodges and steps on the right side!
+    // Phase 1: Slides left to x=620 on approach (tuned to 450 px/s for fair dodge).
+    // Phase 2: Slides BACK to x=688 when player dodges and steps on the right side (480 px/s)!
     final platformSpike = SpikeHazard(
       position: Vector2(688, 308),
       direction: SpikeDirection.up,
@@ -138,17 +156,17 @@ class Stage1Orchard extends StageBase {
     add(TriggerZone(
       position: Vector2(590, 260),
       size: Vector2(35, 90),
-      onTrigger: () => platformSpike.slideTo(620.0, speed: 850),
+      onTrigger: () => platformSpike.slideTo(620.0, speed: 450),
     ));
 
     // Phase 2 Trigger: Player steps onto the right side of platform 620,340 (x: 665-720)
     add(TriggerZone(
       position: Vector2(665, 310),
       size: Vector2(55, 32),
-      onTrigger: () => platformSpike.slideTo(688.0, speed: 950),
+      onTrigger: () => platformSpike.slideTo(688.0, speed: 480),
     ));
 
-    // Trap 5: Troll Ceiling Drop right before the exit on the high platform!
+    // Trap 6: Troll Ceiling Drop right before the exit on the high platform!
     final appleExit = AppleHazard(
       position: Vector2(710, 32),
       behavior: AppleBehavior.fallDown,

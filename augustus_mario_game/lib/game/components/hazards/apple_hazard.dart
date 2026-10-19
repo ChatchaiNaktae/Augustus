@@ -34,6 +34,8 @@ class AppleHazard extends HazardBase {
     add(CircleHitbox(radius: radius - 1));
   }
 
+  double get radius => width / 2;
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();

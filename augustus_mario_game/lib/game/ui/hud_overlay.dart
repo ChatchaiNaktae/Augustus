@@ -7,6 +7,8 @@ class HudOverlay extends StatelessWidget {
   final VoidCallback onMenuPressed;
   final VoidCallback onToggleControls;
   final bool showControls;
+  final VoidCallback? onToggleHitbox;
+  final bool showHitbox;
 
   const HudOverlay({
     super.key,
@@ -15,6 +17,8 @@ class HudOverlay extends StatelessWidget {
     required this.onMenuPressed,
     required this.onToggleControls,
     required this.showControls,
+    this.onToggleHitbox,
+    this.showHitbox = false,
   });
 
   @override
@@ -61,10 +65,20 @@ class HudOverlay extends StatelessWidget {
             ),
           ),
 
-          // Actions: Controls Toggle & Menu Button
+          // Actions: Hitbox Debug, Controls Toggle & Menu Button
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (onToggleHitbox != null)
+                IconButton(
+                  tooltip: showHitbox ? "Hide Hazard Hitboxes (H)" : "Show Hazard Hitboxes (H)",
+                  icon: Icon(
+                    showHitbox ? Icons.visibility_rounded : Icons.visibility_off_outlined,
+                    color: showHitbox ? RetroTheme.green : Colors.grey,
+                    size: 24,
+                  ),
+                  onPressed: onToggleHitbox,
+                ),
               IconButton(
                 tooltip: showControls ? "Hide Virtual Controls" : "Show Virtual Controls",
                 icon: Icon(

@@ -248,14 +248,21 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
             ),
 
           // Top HUD Overlay (Placed on top so Menu is always clickable!)
-          HudOverlay(
-            stageName: _currentStageName,
-            deathCount: _deathCount,
-            showControls: _showVirtualControls,
-            onToggleControls: () {
-              setState(() => _showVirtualControls = !_showVirtualControls);
+          ValueListenableBuilder<bool>(
+            valueListenable: _game.showHazardHitboxesNotifier,
+            builder: (context, showHitbox, _) {
+              return HudOverlay(
+                stageName: _currentStageName,
+                deathCount: _deathCount,
+                showControls: _showVirtualControls,
+                showHitbox: showHitbox,
+                onToggleControls: () {
+                  setState(() => _showVirtualControls = !_showVirtualControls);
+                },
+                onToggleHitbox: _game.toggleHazardHitboxes,
+                onMenuPressed: _showPauseMenu,
+              );
             },
-            onMenuPressed: _showPauseMenu,
           ),
         ],
       ),

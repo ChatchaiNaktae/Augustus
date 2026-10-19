@@ -52,6 +52,8 @@ class SpikeHazard extends HazardBase {
     _sprite = await GameAssetLoader.loadOptionalSprite(spriteName);
   }
 
+  List<Vector2> getTriangleVertices() => _getTriangleVertices();
+
   List<Vector2> _getTriangleVertices() {
     switch (direction) {
       case SpikeDirection.up:
