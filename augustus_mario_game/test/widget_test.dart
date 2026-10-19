@@ -67,11 +67,10 @@ void main() {
 
     final rButton = find.text('R');
     final jumpButton = find.text('JUMP');
-    final shootButton = find.text('SHOOT');
 
     expect(rButton, findsOneWidget);
     expect(jumpButton, findsOneWidget);
-    expect(shootButton, findsOneWidget);
+    expect(find.text('SHOOT'), findsNothing);
 
     // Verify R button is vertically above JUMP button (lower Y coordinate)
     final rCenter = tester.getCenter(rButton);

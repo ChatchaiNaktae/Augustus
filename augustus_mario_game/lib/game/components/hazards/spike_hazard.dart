@@ -3,10 +3,12 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'hazard_base.dart';
 import '../../game_constants.dart';
+import '../../utils/game_asset_loader.dart';
 
 enum SpikeDirection { up, down, left, right }
 
 class SpikeHazard extends HazardBase {
+  Sprite? _sprite;
   final SpikeDirection direction;
   final Vector2? triggerVelocity;
   final bool isTriggered;
@@ -25,6 +27,18 @@ class SpikeHazard extends HazardBase {
         super(size: Vector2.all(size)) {
     // Add polygon hitbox matching the spike triangle
     add(PolygonHitbox(_getTriangleVertices()));
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    final spriteName = switch (direction) {
+      SpikeDirection.up => 'hazards/spike_up.png',
+      SpikeDirection.down => 'hazards/spike_down.png',
+      SpikeDirection.left => 'hazards/spike_left.png',
+      SpikeDirection.right => 'hazards/spike_right.png',
+    };
+    _sprite = await GameAssetLoader.loadOptionalSprite(spriteName);
   }
 
   List<Vector2> _getTriangleVertices() {
@@ -148,6 +162,11 @@ class SpikeHazard extends HazardBase {
   @override
   void render(Canvas canvas) {
     super.render(canvas);
+
+    if (_sprite != null) {
+      _sprite!.render(canvas, size: size);
+      return;
+    }
 
     final path = Path();
     switch (direction) {

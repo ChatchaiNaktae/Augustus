@@ -31,20 +31,18 @@ class MainMenuScreen extends StatelessWidget {
                 _instructionSection("⌨️ KEYBOARD (DESKTOP & WEB)", [
                   "Move: Left / Right Arrow or A / D",
                   "Jump / Double Jump: Shift or Space or W",
-                  "Shoot Pistol: Z or J",
                   "Instant Restart: R (Zero Delay!)",
                   "Release jump early for lower jump (Variable Jump)",
                 ]),
                 const SizedBox(height: 16),
                 _instructionSection("📱 TOUCH CONTROLS (MOBILE)", [
                   "Virtual D-Pad on bottom-left to move",
-                  "JUMP button (tap in air for Double Jump)",
-                  "SHOOT button to fire pistol",
+                  "JUMP button on bottom-right (Double Jump)",
                   "R button above JUMP for instant retry after death",
                 ]),
                 const SizedBox(height: 16),
                 _instructionSection("💡 SURVIVAL TIPS", [
-                  "Touch or shoot 'SAVE' boxes to record checkpoints!",
+                  "Traps trigger at point-blank proximity — stay alert!",
                   "Apples and spikes do NOT follow the laws of physics!",
                   "Death is part of the learning process - press R quickly!",
                 ]),

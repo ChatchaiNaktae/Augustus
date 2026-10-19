@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'stage_base.dart';
 import '../game_constants.dart';
 import '../components/platform_block.dart';
-import '../components/save_point.dart';
 import '../components/hazards/spike_hazard.dart';
 import '../components/hazards/apple_hazard.dart';
 import '../components/hazards/trigger_zone.dart';
@@ -48,21 +47,12 @@ class Stage1Orchard extends StageBase {
     add(PlatformBlock(position: Vector2(480, 420), size: Vector2(100, 24)));
     add(PlatformBlock(position: Vector2(620, 340), size: Vector2(100, 24)));
 
-    // High platform holding the Save Point
+    // High resting platform
     add(PlatformBlock(position: Vector2(660, 200), size: Vector2(100, 24)));
 
-    // 3. Save Point (Shootable)
-    final savePt = SavePoint(
-      position: Vector2(700, 164),
-      respawnPosition: Vector2(680, 172),
-      onSaved: () {
-        game.updateCheckpoint(Vector2(680, 172), stageIndex);
-      },
-    );
-    add(savePt);
+    // 3. Handcrafted IWBTG Troll Traps (Point-Blank Proximity)!
 
-    // 4. Fixed Handcrafted IWBTG Traps!
-    // Trap A: The "Normal" Falling Apple (Player walks under it, it falls down)
+    // Trap 1: The "Normal" Falling Apple (Drops only when player is directly underneath)
     final appleA = AppleHazard(
       position: Vector2(170, 120),
       behavior: AppleBehavior.fallDown,
@@ -70,14 +60,29 @@ class Stage1Orchard extends StageBase {
     );
     add(appleA);
 
+    // Point-blank trigger: directly aligned underneath Apple A (x: 162-180)
     add(TriggerZone(
-      position: Vector2(140, 500),
-      size: Vector2(80, 68),
+      position: Vector2(162, 450),
+      size: Vector2(18, 118),
       onTrigger: () => appleA.trigger(),
     ));
 
-    // Trap B: The Infamous "Anti-Gravity Sky-Rocket Apple"
-    // Sits peacefully near the pit, but when player jumps to cross the pit, it shoots UPWARD!
+    // Trap 2 (Fakeout): As player jumps up to platform 1 to dodge the apple, a 2nd apple rushes left!
+    final appleA2 = AppleHazard(
+      position: Vector2(210, 410),
+      behavior: AppleBehavior.flyLeft,
+      hazardId: "apple_drop_fakeout",
+    );
+    add(appleA2);
+
+    add(TriggerZone(
+      position: Vector2(140, 415),
+      size: Vector2(20, 30),
+      onTrigger: () => appleA2.trigger(),
+    ));
+
+    // Trap 3: The Infamous "Anti-Gravity Sky-Rocket Apple"
+    // Launches straight UP only when player is genuinely leaping over the pit (x: 330-348)
     final appleB = AppleHazard(
       position: Vector2(340, 530),
       behavior: AppleBehavior.flyUp,
@@ -85,14 +90,29 @@ class Stage1Orchard extends StageBase {
     );
     add(appleB);
 
+    // Point-blank trigger: strictly on the mid-stone leap trajectory (x: 330-348)
     add(TriggerZone(
-      position: Vector2(250, 400),
-      size: Vector2(70, 120),
+      position: Vector2(330, 430),
+      size: Vector2(18, 50),
       onTrigger: () => appleB.trigger(),
     ));
 
-    // Trap C: Horizontal Ambush Apple
-    // Placed near the right ledge; when player steps on mid platform, it rushes left!
+    // Trap 4: Surprise Skyward Spike leaping from pit edge when jumping to the right floor
+    final pitSpike = SpikeHazard(
+      position: Vector2(410, 568),
+      direction: SpikeDirection.up,
+      triggerVelocity: Vector2(0, -950),
+      hazardId: "spike_pit_launch",
+    );
+    add(pitSpike);
+
+    add(TriggerZone(
+      position: Vector2(370, 440),
+      size: Vector2(18, 40),
+      onTrigger: () => pitSpike.trigger(),
+    ));
+
+    // Trap 5: Horizontal Ambush Apple rushing left when player lands point-blank on platform 620,340
     final appleC = AppleHazard(
       position: Vector2(720, 335),
       behavior: AppleBehavior.flyLeft,
@@ -100,16 +120,32 @@ class Stage1Orchard extends StageBase {
     );
     add(appleC);
 
+    // Point-blank trigger on platform edge (x: 630-648)
     add(TriggerZone(
-      position: Vector2(490, 380),
-      size: Vector2(80, 40),
+      position: Vector2(630, 315),
+      size: Vector2(18, 25),
       onTrigger: () => appleC.trigger(),
     ));
 
-    // 5. Stage Exit Trigger (Right boundary at bottom right)
+    // Trap 6: Troll Ceiling Drop right before the exit sign!
+    final appleExit = AppleHazard(
+      position: Vector2(710, 32),
+      behavior: AppleBehavior.fallDown,
+      hazardId: "apple_exit_troll",
+    );
+    add(appleExit);
+
+    // Point-blank trigger right before exit sign (x: 695-715)
     add(TriggerZone(
-      position: Vector2(770, 480),
-      size: Vector2(30, 88),
+      position: Vector2(695, 520),
+      size: Vector2(20, 48),
+      onTrigger: () => appleExit.trigger(),
+    ));
+
+    // 4. Stage Exit Trigger (Right boundary at bottom right)
+    add(TriggerZone(
+      position: Vector2(775, 480),
+      size: Vector2(25, 88),
       onTrigger: () => completeStage(),
     ));
   }

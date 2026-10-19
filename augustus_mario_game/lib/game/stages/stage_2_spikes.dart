@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'stage_base.dart';
 import '../game_constants.dart';
 import '../components/platform_block.dart';
-import '../components/save_point.dart';
 import '../components/hazards/spike_hazard.dart';
 import '../components/hazards/collapsing_block.dart';
 import '../components/hazards/trigger_zone.dart';
@@ -41,19 +40,10 @@ class Stage2Spikes extends StageBase {
     add(PlatformBlock(position: Vector2(120, 430), size: Vector2(80, 24)));
     add(PlatformBlock(position: Vector2(240, 340), size: Vector2(80, 24)));
 
-    // Save Point Platform (Mid-height)
+    // Mid-height resting platform
     add(PlatformBlock(position: Vector2(400, 240), size: Vector2(100, 24)));
-    final savePt = SavePoint(
-      position: Vector2(440, 204),
-      respawnPosition: Vector2(420, 212),
-      onSaved: () {
-        game.updateCheckpoint(Vector2(420, 212), stageIndex);
-      },
-    );
-    add(savePt);
 
-    // Trap C: Collapsing Fake Floor between platforms!
-    // Player must quickly double jump off before it plunges down!
+    // Collapsing Fake Floor between platforms!
     final fakePlatform = CollapsingBlock(
       position: Vector2(280, 450),
       size: Vector2(80, 24),
@@ -64,50 +54,96 @@ class Stage2Spikes extends StageBase {
     add(PlatformBlock(position: Vector2(560, 200), size: Vector2(90, 24)));
     add(PlatformBlock(position: Vector2(680, 140), size: Vector2(90, 24)));
 
-    // 3. Fixed Handcrafted IWBTG Traps!
-    // Trap A: The Guillotine Ceiling Spike (Drops straight down)
+    // 3. Handcrafted IWBTG Troll Traps (Point-Blank Proximity)!
+
+    // Trap 1: The Guillotine Ceiling Spike (Drops only when player is directly underneath x: 252-270)
     final guillotineSpike = SpikeHazard(
       position: Vector2(260, 32),
       direction: SpikeDirection.down,
-      triggerVelocity: Vector2(0, 1250), // Masocore hyper-drop (เดิม 850)
+      triggerVelocity: Vector2(0, 1250),
       hazardId: "spike_guillotine",
     );
     add(guillotineSpike);
 
     add(TriggerZone(
-      position: Vector2(220, 300),
-      size: Vector2(80, 40),
+      position: Vector2(252, 315),
+      size: Vector2(18, 25),
       onTrigger: () => guillotineSpike.trigger(),
     ));
 
-    // Trap B: Wall Impaler Spike (Shoots horizontally from left wall)
+    // Trap 2: Double Guillotine Fakeout! Drops when player tries to rush right to dodge Trap 1 (x: 282-300)
+    final guillotineSpike2 = SpikeHazard(
+      position: Vector2(290, 32),
+      direction: SpikeDirection.down,
+      triggerVelocity: Vector2(0, 1250),
+      hazardId: "spike_guillotine_2",
+    );
+    add(guillotineSpike2);
+
+    add(TriggerZone(
+      position: Vector2(282, 315),
+      size: Vector2(18, 25),
+      onTrigger: () => guillotineSpike2.trigger(),
+    ));
+
+    // Trap 3: Wall Impaler Spike (Shoots horizontally right when player drops down near wall)
     final wallSpike = SpikeHazard(
       position: Vector2(32, 400),
       direction: SpikeDirection.right,
-      triggerVelocity: Vector2(1150, 0), // Masocore wall rusher (เดิม 750)
+      triggerVelocity: Vector2(1150, 0),
       hazardId: "spike_wall_rusher",
     );
     add(wallSpike);
 
     add(TriggerZone(
-      position: Vector2(120, 390),
-      size: Vector2(40, 40),
+      position: Vector2(75, 410),
+      size: Vector2(20, 35),
       onTrigger: () => wallSpike.trigger(),
     ));
 
-    // Trap D: The Rocket Spike (Floor spike that shoots straight up when approaching exit)
+    // Trap 4: Surprise Skyward Pit Spike jumping from below the crumbling platform
+    final pitSpike2 = SpikeHazard(
+      position: Vector2(320, 568),
+      direction: SpikeDirection.up,
+      triggerVelocity: Vector2(0, -1150),
+      hazardId: "spike_pit_jumper",
+    );
+    add(pitSpike2);
+
+    add(TriggerZone(
+      position: Vector2(305, 425),
+      size: Vector2(20, 30),
+      onTrigger: () => pitSpike2.trigger(),
+    ));
+
+    // Trap 5: The Rocket Spike (Floor spike shooting straight up as player reaches the edge of platform 560)
     final rocketSpike = SpikeHazard(
       position: Vector2(600, 536),
       direction: SpikeDirection.up,
-      triggerVelocity: Vector2(0, -1250), // Masocore rocket launch (เดิม -850)
+      triggerVelocity: Vector2(0, -1250),
       hazardId: "spike_rocket",
     );
     add(rocketSpike);
 
     add(TriggerZone(
-      position: Vector2(570, 160),
-      size: Vector2(60, 40),
+      position: Vector2(590, 175),
+      size: Vector2(20, 25),
       onTrigger: () => rocketSpike.trigger(),
+    ));
+
+    // Trap 6: Ceiling spike ambush dropping onto the final platform before exit
+    final exitGuillotine = SpikeHazard(
+      position: Vector2(700, 32),
+      direction: SpikeDirection.down,
+      triggerVelocity: Vector2(0, 1250),
+      hazardId: "spike_exit_guillotine",
+    );
+    add(exitGuillotine);
+
+    add(TriggerZone(
+      position: Vector2(692, 115),
+      size: Vector2(18, 25),
+      onTrigger: () => exitGuillotine.trigger(),
     ));
 
     // Ceiling spikes hazard above exit passage to force tight low jumps
@@ -117,8 +153,8 @@ class Stage2Spikes extends StageBase {
 
     // 4. Stage Exit Trigger (Upper right corner)
     add(TriggerZone(
-      position: Vector2(740, 80),
-      size: Vector2(60, 60),
+      position: Vector2(745, 80),
+      size: Vector2(25, 60),
       onTrigger: () => completeStage(),
     ));
   }

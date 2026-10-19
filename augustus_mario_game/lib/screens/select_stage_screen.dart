@@ -52,9 +52,7 @@ class SelectStageScreen extends StatelessWidget {
                         subtitle: "สวนผลไม้ลวงตา",
                         description:
                             "ระวังผลแอปเปิ้ลที่ดูไร้พิษภัย! บทเรียนแรกของ Masocore: อย่าไว้ใจแรงโน้มถ่วง เพราะแอปเปิ้ลอาจพุ่งย้อนศรขึ้นฟ้า!",
-                        traps: "🍎 แอปเปิ้ลหล่น & พุ่งขึ้นฟ้า | 🎯 จุดเซฟบนแท่นสูง",
-                        difficulty: "★☆☆☆☆",
-                        difficultyColor: RetroTheme.green,
+                        traps: "🍎 แอปเปิ้ลหล่น & พุ่งขึ้นฟ้า | ⚡ กับดักสองจังหวะ",
                         themeColor: RetroTheme.green,
                       ),
                       const SizedBox(height: 18),
@@ -66,8 +64,6 @@ class SelectStageScreen extends StatelessWidget {
                         description:
                             "ทดสอบความแม่นยำในการกระโดดสองจังหวะลอดช่องแคบ ระวังหนามที่พุ่งออกมาจากผนัง และพื้นลวงตาที่เหยียบแล้วร่วงลงเหว!",
                         traps: "🗡️ หนามกิโยติน & หนามผนังพุ่งชน | ⚠️ พื้นลวงตายกตัว/ยุบตัว",
-                        difficulty: "★★★☆☆",
-                        difficultyColor: RetroTheme.yellow,
                         themeColor: RetroTheme.yellow,
                       ),
                       const SizedBox(height: 18),
@@ -79,8 +75,6 @@ class SelectStageScreen extends StatelessWidget {
                         description:
                             "ด่านท้าทายระดับขีดสุด! กระโดดข้ามเหวลึกไร้ก้น หลบการโจมตีประสานงาน และระวังกับดักหน้าแท่นถ้วยรางวัลเพื่อพิสูจน์ความเป็น THE GUY!",
                         traps: "🍎 แอปเปิ้ลยิงประสาน | 🗡️ กับดักหน้าเส้นชัย | 🏆 ถ้วยรางวัล",
-                        difficulty: "★★★★★",
-                        difficultyColor: RetroTheme.primary,
                         themeColor: RetroTheme.primary,
                       ),
                     ],
@@ -101,8 +95,6 @@ class SelectStageScreen extends StatelessWidget {
     required String subtitle,
     required String description,
     required String traps,
-    required String difficulty,
-    required Color difficultyColor,
     required Color themeColor,
   }) {
     return Container(
@@ -142,25 +134,9 @@ class SelectStageScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      title,
-                      style: RetroTheme.pixelText(fontSize: 16, color: Colors.white),
-                    ),
-                    const SizedBox(width: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: difficultyColor.withValues(alpha: 0.2),
-                        border: Border.all(color: difficultyColor, width: 1),
-                      ),
-                      child: Text(
-                        difficulty,
-                        style: TextStyle(color: difficultyColor, fontSize: 11, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
+                Text(
+                  title,
+                  style: RetroTheme.pixelText(fontSize: 16, color: Colors.white),
                 ),
                 const SizedBox(height: 4),
                 Text(

@@ -3,6 +3,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'hazard_base.dart';
 import '../../game_constants.dart';
+import '../../utils/game_asset_loader.dart';
 
 enum AppleBehavior {
   staticItem,
@@ -14,6 +15,7 @@ enum AppleBehavior {
 }
 
 class AppleHazard extends HazardBase {
+  Sprite? _sprite;
   final AppleBehavior behavior;
   final Vector2? customLaunchVelocity;
   final Vector2 _initialPosition;
@@ -30,6 +32,12 @@ class AppleHazard extends HazardBase {
   })  : _initialPosition = position!.clone(),
         super(size: Vector2.all(radius * 2)) {
     add(CircleHitbox(radius: radius - 1));
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    _sprite = await GameAssetLoader.loadOptionalSprite('hazards/apple.png');
   }
 
   @override
@@ -120,6 +128,11 @@ class AppleHazard extends HazardBase {
   @override
   void render(Canvas canvas) {
     super.render(canvas);
+
+    if (_sprite != null) {
+      _sprite!.render(canvas, size: size);
+      return;
+    }
 
     final center = Offset(width / 2, height / 2 + 1);
     final radius = width / 2 - 2;

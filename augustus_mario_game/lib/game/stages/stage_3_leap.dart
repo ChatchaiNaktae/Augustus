@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'stage_base.dart';
 import '../game_constants.dart';
 import '../components/platform_block.dart';
-import '../components/save_point.dart';
 import '../components/hazards/spike_hazard.dart';
 import '../components/hazards/apple_hazard.dart';
 import '../components/hazards/collapsing_block.dart';
@@ -50,22 +49,44 @@ class Stage3Leap extends StageBase {
     );
     add(collapse2);
 
-    // Save Point in the middle of danger!
+    // Mid-air resting platform
     add(PlatformBlock(position: Vector2(400, 320), size: Vector2(80, 20)));
-    final midSavePt = SavePoint(
-      position: Vector2(425, 284),
-      respawnPosition: Vector2(410, 292),
-      onSaved: () {
-        game.updateCheckpoint(Vector2(410, 292), stageIndex);
-      },
-    );
-    add(midSavePt);
 
     // Platform 4 before the leap
     add(PlatformBlock(position: Vector2(530, 380), size: Vector2(70, 20)));
 
-    // 3. Fixed Handcrafted IWBTG Traps!
-    // Trap A: Crossfire Apples!
+    // 3. Handcrafted IWBTG Troll Traps (Point-Blank Proximity)!
+
+    // Trap 1: Surprise Leaping Pit Spike during the first leap
+    final leapSpike1 = SpikeHazard(
+      position: Vector2(230, 568),
+      direction: SpikeDirection.up,
+      triggerVelocity: Vector2(0, -1150),
+      hazardId: "spike_leap_1",
+    );
+    add(leapSpike1);
+
+    add(TriggerZone(
+      position: Vector2(225, 420),
+      size: Vector2(18, 40),
+      onTrigger: () => leapSpike1.trigger(),
+    ));
+
+    // Trap 2: Ceiling Apple Drop timed with the collapsing platform!
+    final collapseApple = AppleHazard(
+      position: Vector2(320, 32),
+      behavior: AppleBehavior.fallDown,
+      hazardId: "apple_collapse_sniper",
+    );
+    add(collapseApple);
+
+    add(TriggerZone(
+      position: Vector2(305, 365),
+      size: Vector2(20, 25),
+      onTrigger: () => collapseApple.trigger(),
+    ));
+
+    // Trap 3: Crossfire Apples! Ambush as player lands on mid platform (x: 425-445)
     final appleLeft = AppleHazard(
       position: Vector2(200, 250),
       behavior: AppleBehavior.flyRight,
@@ -80,42 +101,43 @@ class Stage3Leap extends StageBase {
     add(appleRight);
 
     add(TriggerZone(
-      position: Vector2(290, 350),
-      size: Vector2(60, 40),
+      position: Vector2(425, 295),
+      size: Vector2(20, 25),
       onTrigger: () {
         appleLeft.trigger();
         appleRight.trigger();
       },
     ));
 
-    // Trap B: Ceiling Ambush Spike above Platform 4
+    // Trap 4: Ceiling Ambush Spike directly above Platform 4 (x: 545-565)
     final dropSpike = SpikeHazard(
       position: Vector2(550, 32),
       direction: SpikeDirection.down,
-      triggerVelocity: Vector2(0, 1250), // Masocore hyper-drop (เดิม 850)
+      triggerVelocity: Vector2(0, 1250),
       hazardId: "spike_altar_drop",
     );
     add(dropSpike);
 
     add(TriggerZone(
-      position: Vector2(530, 330),
-      size: Vector2(60, 40),
+      position: Vector2(545, 355),
+      size: Vector2(18, 25),
       onTrigger: () => dropSpike.trigger(),
     ));
 
-    // Trap C: The Trophy Deception Spike!
-    // Sits right before the trophy on the altar floor, launches UP when player touches the altar
+    // Trap 5: The Ultimate Trophy Deception Spike!
+    // Sits right before the trophy; launches UP when player is within 15px of the trophy
     final trollSpike = SpikeHazard(
       position: Vector2(670, 468),
       direction: SpikeDirection.up,
-      triggerVelocity: Vector2(0, -1150), // Masocore rapid ambush (เดิม -750)
+      triggerVelocity: Vector2(0, -1150),
       hazardId: "spike_trophy_troll",
     );
     add(trollSpike);
 
+    // Point-blank proximity trigger right in front of the trophy (x: 665-680)
     add(TriggerZone(
-      position: Vector2(650, 440),
-      size: Vector2(30, 60),
+      position: Vector2(665, 450),
+      size: Vector2(15, 50),
       onTrigger: () => trollSpike.trigger(),
     ));
 

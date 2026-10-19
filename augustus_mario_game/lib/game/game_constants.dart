@@ -21,11 +21,6 @@ class GameConstants {
   static const double doubleJumpVelocity = -445.0; // เดิม -390.0 (สูงขึ้นจาก 54px เป็น 71px)
   static const double jumpCutMultiplier = 0.45; // Variable jump height reduction
 
-  // Bullet
-  static const double bulletSpeed = 700.0;
-  static const double bulletRadius = 4.0;
-  static const int maxBulletsOnScreen = 4;
-
   // Blood Particle FX
   static const int deathBloodParticleCount = 75;
   static const double bloodMinSpeed = 80.0;
@@ -39,8 +34,6 @@ class GameConstants {
   static const Color spikeColor = Color(0xFFE5E9F0);
   static const Color appleRed = Color(0xFFE06C75);
   static const Color appleGreen = Color(0xFF98C379);
-  static const Color savePointUnsaved = Color(0xFFE06C75);
-  static const Color savePointSaved = Color(0xFF98C379);
   static const Color retroYellow = Color(0xFFE5C07B);
   static const Color retroCyan = Color(0xFF56B6C2);
 }

@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'game_constants.dart';
 import 'components/player.dart';
-import 'components/bullet.dart';
 import 'components/blood_particle.dart';
 import 'stages/stage_base.dart';
 import 'stages/stage_1_orchard.dart';
@@ -24,8 +23,6 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
 
   int currentStageIndex = 1;
   int deathCount = 0;
-  Vector2? activeCheckpoint;
-  int? activeCheckpointStage;
 
   StageBase? currentStage;
   Player? player;
@@ -62,9 +59,8 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     player?.removeFromParent();
     currentStage?.removeFromParent();
 
-    // Clean up bullets and blood particles from previous run
+    // Clean up blood particles from previous run
     world.children.whereType<BloodParticleSystem>().toList().forEach((b) => b.removeFromParent());
-    world.children.whereType<Bullet>().toList().forEach((b) => b.removeFromParent());
 
     // Instantiate selected stage
     switch (stageNumber) {
@@ -83,22 +79,13 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
 
     await world.add(currentStage!);
 
-    // Check if we have an active checkpoint in this stage
-    final spawn = (activeCheckpoint != null && activeCheckpointStage == stageNumber)
-        ? activeCheckpoint!
-        : currentStage!.defaultSpawnPosition;
-
-    player = Player(initialPosition: spawn);
+    // Spawn player at stage starting position
+    player = Player(initialPosition: currentStage!.defaultSpawnPosition);
     await world.add(player!);
 
     onPlayerStateChanged?.call(false);
     onStageUpdated?.call(currentStageIndex, currentStage!.stageName);
     onPlayerRespawned?.call();
-  }
-
-  void updateCheckpoint(Vector2 checkpointPos, int stageNum) {
-    activeCheckpoint = checkpointPos.clone();
-    activeCheckpointStage = stageNum;
   }
 
   void onPlayerDied() {
@@ -110,16 +97,11 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   void respawnPlayer() {
     if (player == null || currentStage == null) return;
 
-    // Clean up bullets and blood particles from previous run
+    // Clean up blood particles from previous run
     world.children.whereType<BloodParticleSystem>().toList().forEach((b) => b.removeFromParent());
-    world.children.whereType<Bullet>().toList().forEach((b) => b.removeFromParent());
 
-    // Zero-delay instant respawn: Reset player position to checkpoint
-    final respawnPos = (activeCheckpoint != null && activeCheckpointStage == currentStageIndex)
-        ? activeCheckpoint!
-        : currentStage!.defaultSpawnPosition;
-
-    player!.respawnAt(respawnPos);
+    // Zero-delay instant respawn: Reset player position to stage start
+    player!.respawnAt(currentStage!.defaultSpawnPosition);
 
     // Reset all traps and trigger zones in the current stage
     currentStage!.resetHazards();
@@ -128,16 +110,11 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   }
 
   void restartCurrentStage() {
-    activeCheckpoint = null;
-    activeCheckpointStage = null;
     loadStage(currentStageIndex);
   }
 
   void onStageCleared(int fromStage) {
     if (fromStage < 3) {
-      // Clear checkpoint when advancing to next stage
-      activeCheckpoint = null;
-      activeCheckpointStage = null;
       loadStage(fromStage + 1);
     } else {
       onVictory();
@@ -145,8 +122,6 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   }
 
   void onVictory() {
-    activeCheckpoint = null;
-    activeCheckpointStage = null;
     onVictoryTriggered?.call();
   }
 
@@ -198,12 +173,6 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
           event.logicalKey == LogicalKeyboardKey.keyW ||
           event.logicalKey == LogicalKeyboardKey.keyK) {
         player!.pressJump();
-      }
-
-      // Shoot (Z or J)
-      if (event.logicalKey == LogicalKeyboardKey.keyZ ||
-          event.logicalKey == LogicalKeyboardKey.keyJ) {
-        player!.shoot();
       }
 
       // Instant Respawn (R)

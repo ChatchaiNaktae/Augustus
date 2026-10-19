@@ -3,15 +3,15 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../game_constants.dart';
 import '../iwbtg_game.dart';
-import 'bullet.dart';
 import 'blood_particle.dart';
 import 'platform_block.dart';
 import 'hazards/hazard_base.dart';
 import 'hazards/trigger_zone.dart';
 import 'hazards/collapsing_block.dart';
-import 'save_point.dart';
+import '../utils/game_asset_loader.dart';
 
 class Player extends PositionComponent with CollisionCallbacks, HasGameReference<IWBTGGame> {
+  Sprite? _idleSprite;
   final Vector2 velocity = Vector2.zero();
   bool isOnGround = false;
   bool canDoubleJump = false;
@@ -57,6 +57,12 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     );
   }
 
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    _idleSprite = await GameAssetLoader.loadOptionalSprite('player/player_idle.png');
+  }
+
   void setMoveInput(double input) {
     moveInput = input.clamp(-1.0, 1.0);
     if (!isAlive) return;
@@ -76,19 +82,6 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     if (velocity.y < 0) {
       velocity.y *= GameConstants.jumpCutMultiplier;
     }
-  }
-
-  void shoot() {
-    if (!isAlive) return;
-    final bulletsCount = parent?.children.whereType<Bullet>().length ?? 0;
-    if (bulletsCount >= GameConstants.maxBulletsOnScreen) return;
-
-    final bulletDir = facingRight ? 1.0 : -1.0;
-    final spawnPos = Vector2(
-      facingRight ? position.x + width + 2 : position.x - 6,
-      position.y + height * 0.45,
-    );
-    parent?.add(Bullet(position: spawnPos, direction: bulletDir));
   }
 
   void die() {
@@ -208,7 +201,7 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       velocity.y = GameConstants.maxFallSpeed;
     }
 
-    // Active TriggerZone & SavePoint sweep check
+    // Active TriggerZone sweep check
     final stage = game.currentStage;
     if (stage != null) {
       final pRect = toRect();
@@ -218,12 +211,6 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       for (final zone in zones) {
         if (zone.toRect().overlaps(pRect)) {
           zone.activate();
-        }
-      }
-
-      for (final sp in stage.children.whereType<SavePoint>()) {
-        if (!sp.isSaved && sp.toRect().overlaps(pRect)) {
-          sp.activateSave();
         }
       }
     }
@@ -419,8 +406,6 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       die();
     } else if (other is TriggerZone) {
       other.activate();
-    } else if (other is SavePoint) {
-      other.activateSave();
     }
   }
 
@@ -433,8 +418,6 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       die();
     } else if (other is TriggerZone) {
       other.activate();
-    } else if (other is SavePoint) {
-      other.activateSave();
     }
   }
 
@@ -449,6 +432,14 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
       canvas.scale(-1, 1);
     }
 
+    // If custom sprite asset is provided, render it!
+    if (_idleSprite != null) {
+      _idleSprite!.render(canvas, size: size);
+      canvas.restore();
+      return;
+    }
+
+    // Procedural Vector Fallback:
     // Cape / Bow at the back
     final capePaint = Paint()..color = const Color(0xFFE5E9F0);
     final capePath = Path()
@@ -479,11 +470,6 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     final hatPaint = Paint()..color = const Color(0xFFBF616A);
     canvas.drawRect(const Rect.fromLTWH(3, 1, 15, 4), hatPaint);
     canvas.drawRect(const Rect.fromLTWH(11, 4, 6, 2), hatPaint); // visor
-
-    // Hand holding Pistol
-    final gunPaint = Paint()..color = const Color(0xFFD8DEE9);
-    canvas.drawRect(const Rect.fromLTWH(16, 14, 6, 3), gunPaint);
-    canvas.drawRect(const Rect.fromLTWH(15, 15, 3, 4), Paint()..color = const Color(0xFF4C566A));
 
     canvas.restore();
   }
