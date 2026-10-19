@@ -31,10 +31,29 @@ class Stage1Orchard extends StageBase {
     // Right Floor
     add(PlatformBlock(position: Vector2(420, 568), size: Vector2(380, 32)));
 
-    // Deadly Spikes inside the pit
-    for (double x = 260; x < 420; x += 32) {
-      add(SpikeHazard(position: Vector2(x, 568), direction: SpikeDirection.up));
-    }
+    // Deadly Spikes inside the pit (Strictly grid-aligned across x: 260 to 420; exactly 5 spikes)
+    add(SpikeHazard(position: Vector2(260, 568), direction: SpikeDirection.up));
+    add(SpikeHazard(position: Vector2(292, 568), direction: SpikeDirection.up));
+
+    // Trap 3: Disguised Pit Rocket Spike (Seamlessly placed at x: 324, y: 568)
+    // Replaces the old floating mid-air apple; completely blends with floor spikes until triggered!
+    final pitRocketSpike = SpikeHazard(
+      position: Vector2(324, 568),
+      direction: SpikeDirection.up,
+      triggerVelocity: Vector2(0, -1100),
+      hazardId: "spike_pit_rocket",
+    );
+    add(pitRocketSpike);
+
+    add(TriggerZone(
+      position: Vector2(325, 430),
+      size: Vector2(20, 50),
+      onTrigger: () => pitRocketSpike.trigger(),
+    ));
+
+    add(SpikeHazard(position: Vector2(356, 568), direction: SpikeDirection.up));
+    // 5th spike ends exactly at x = 420, perfectly flush with the Right Floor block (Zero overlap)
+    add(SpikeHazard(position: Vector2(388, 568), direction: SpikeDirection.up));
 
     // 2. Platforms & Structures
     // Low platform 1
@@ -67,52 +86,21 @@ class Stage1Orchard extends StageBase {
       onTrigger: () => appleA.trigger(),
     ));
 
-    // Trap 2 (Fakeout): As player jumps up to platform 1 to dodge the apple, a 2nd apple rushes left!
+    // Trap 2: Apple under tree rushes right! (flyRight)
     final appleA2 = AppleHazard(
-      position: Vector2(210, 410),
-      behavior: AppleBehavior.flyLeft,
-      hazardId: "apple_drop_fakeout",
+      position: Vector2(205, 416),
+      behavior: AppleBehavior.flyRight,
+      hazardId: "apple_tree_rusher",
     );
     add(appleA2);
 
     add(TriggerZone(
-      position: Vector2(140, 415),
-      size: Vector2(20, 30),
+      position: Vector2(145, 410),
+      size: Vector2(25, 30),
       onTrigger: () => appleA2.trigger(),
     ));
 
-    // Trap 3: The Infamous "Anti-Gravity Sky-Rocket Apple"
-    // Launches straight UP only when player is genuinely leaping over the pit (x: 330-348)
-    final appleB = AppleHazard(
-      position: Vector2(340, 530),
-      behavior: AppleBehavior.flyUp,
-      hazardId: "apple_rocket_1",
-    );
-    add(appleB);
-
-    // Point-blank trigger: strictly on the mid-stone leap trajectory (x: 330-348)
-    add(TriggerZone(
-      position: Vector2(330, 430),
-      size: Vector2(18, 50),
-      onTrigger: () => appleB.trigger(),
-    ));
-
-    // Trap 4: Surprise Skyward Spike leaping from pit edge when jumping to the right floor
-    final pitSpike = SpikeHazard(
-      position: Vector2(410, 568),
-      direction: SpikeDirection.up,
-      triggerVelocity: Vector2(0, -950),
-      hazardId: "spike_pit_launch",
-    );
-    add(pitSpike);
-
-    add(TriggerZone(
-      position: Vector2(370, 440),
-      size: Vector2(18, 40),
-      onTrigger: () => pitSpike.trigger(),
-    ));
-
-    // Trap 5: Horizontal Ambush Apple rushing left when player lands point-blank on platform 620,340
+    // Trap 4: Horizontal Ambush Apple rushing left when player lands point-blank on platform 620,340
     final appleC = AppleHazard(
       position: Vector2(720, 335),
       behavior: AppleBehavior.flyLeft,
@@ -127,7 +115,7 @@ class Stage1Orchard extends StageBase {
       onTrigger: () => appleC.trigger(),
     ));
 
-    // Trap 6: Troll Ceiling Drop right before the exit sign!
+    // Trap 5: Troll Ceiling Drop right before the exit on the high platform!
     final appleExit = AppleHazard(
       position: Vector2(710, 32),
       behavior: AppleBehavior.fallDown,
@@ -135,17 +123,17 @@ class Stage1Orchard extends StageBase {
     );
     add(appleExit);
 
-    // Point-blank trigger right before exit sign (x: 695-715)
+    // Point-blank trigger on the high platform (x: 675-695)
     add(TriggerZone(
-      position: Vector2(695, 520),
-      size: Vector2(20, 48),
+      position: Vector2(675, 160),
+      size: Vector2(20, 40),
       onTrigger: () => appleExit.trigger(),
     ));
 
-    // 4. Stage Exit Trigger (Right boundary at bottom right)
+    // 4. Stage Exit Trigger (Right edge of high platform at top right)
     add(TriggerZone(
-      position: Vector2(775, 480),
-      size: Vector2(25, 88),
+      position: Vector2(745, 120),
+      size: Vector2(35, 80),
       onTrigger: () => completeStage(),
     ));
   }
@@ -163,7 +151,7 @@ class Stage1Orchard extends StageBase {
     canvas.drawCircle(const Offset(150, 100), 35, foliagePaint);
     canvas.drawCircle(const Offset(210, 105), 35, foliagePaint);
 
-    // Decorative sign at exit
+    // Decorative sign at exit (moved to top right platform)
     final textPainter = TextPainter(
       text: const TextSpan(
         text: "STAGE 2 >>",
@@ -177,6 +165,6 @@ class Stage1Orchard extends StageBase {
       textDirection: TextDirection.ltr,
     );
     textPainter.layout();
-    textPainter.paint(canvas, const Offset(690, 530));
+    textPainter.paint(canvas, const Offset(675, 160));
   }
 }

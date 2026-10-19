@@ -7,6 +7,7 @@ import 'package:augustus_mario_game/game/components/hazards/trigger_zone.dart';
 import 'package:augustus_mario_game/game/components/hazards/collapsing_block.dart';
 import 'package:augustus_mario_game/game/iwbtg_game.dart';
 import 'package:augustus_mario_game/game/game_constants.dart';
+import 'package:augustus_mario_game/game/stages/stage_1_orchard.dart';
 
 Future<IWBTGGame> createTestGame() async {
   final game = IWBTGGame(initialStage: 1);
@@ -331,4 +332,72 @@ void main() {
       expect(triggered, isTrue);
     });
   });
+
+  group('Stage 1 Mechanics & Polish Tests', () {
+    test('Stage 1 has exactly 5 pit spikes aligned across 260-420 with 0 overlap on right floor', () async {
+      final stage = Stage1Orchard();
+      await stage.onLoad();
+
+      final spikes = stage.hazards.whereType<SpikeHazard>().where((s) => s.position.y == 568).toList();
+
+      // Exactly 5 spikes across the 160px pit (x=260 to x=420)
+      expect(spikes.length, equals(5));
+
+      // Sorted by x position
+      spikes.sort((a, b) => a.position.x.compareTo(b.position.x));
+
+      final expectedXs = [260.0, 292.0, 324.0, 356.0, 388.0];
+      for (int i = 0; i < spikes.length; i++) {
+        expect(spikes[i].position.x, equals(expectedXs[i]));
+        expect(spikes[i].position.y, equals(568.0));
+      }
+
+      // The 5th spike ends at 388 + 32 = 420.0, which perfectly touches the right platform without overlap
+      final rightmostSpike = spikes.last;
+      expect(rightmostSpike.position.x + rightmostSpike.width, equals(420.0));
+    });
+
+    test('Stage 1 apple under tree has behavior flyRight', () async {
+      final stage = Stage1Orchard();
+      await stage.onLoad();
+
+      final treeApple = stage.hazards
+          .whereType<AppleHazard>()
+          .firstWhere((a) => a.hazardId == 'apple_tree_rusher');
+
+      expect(treeApple.behavior, equals(AppleBehavior.flyRight));
+      expect(treeApple.position.x, closeTo(205.0, 5.0));
+    });
+
+    test('Stage 1 pit rocket spike is disguised at y=568 and launches upward', () async {
+      final stage = Stage1Orchard();
+      await stage.onLoad();
+
+      final pitRocket = stage.hazards
+          .whereType<SpikeHazard>()
+          .firstWhere((s) => s.hazardId == 'spike_pit_rocket');
+
+      // Rest position matches the pit floor spikes exactly
+      expect(pitRocket.position.x, equals(324.0));
+      expect(pitRocket.position.y, equals(568.0));
+      expect(pitRocket.triggerVelocity!.y, lessThan(-1000.0));
+
+      // Trigger it and update
+      pitRocket.trigger();
+      pitRocket.update(0.016);
+      expect(pitRocket.position.y, lessThan(568.0));
+    });
+
+    test('Stage 1 exit is located at the top right platform', () async {
+      final stage = Stage1Orchard();
+      await stage.onLoad();
+
+      final exitZones = stage.triggerZones
+          .where((z) => z.position.x >= 740 && z.position.y < 200)
+          .toList();
+
+      expect(exitZones.isNotEmpty, isTrue);
+    });
+  });
 }
+
