@@ -46,7 +46,26 @@ class Stage3Leap extends StageBase {
     add(PlatformBlock(position: Vector2(0, 568), size: Vector2(160, 32)));
 
     // Bunker Cover above spawn (Shortened according to user sketch in Image 2)
-    add(PlatformBlock(position: Vector2(0, 490), size: Vector2(110, 24)));
+    add(PlatformBlock(position: Vector2(0, 490), size: Vector2(110, 24), priority: 2));
+
+    // Giant Spike on Bunker Roof (Surprise Spike that shoots UP when player steps on bunker roof)
+    final bunkerGiantSpike = SpikeHazard(
+      position: Vector2(32, 490),
+      customSize: Vector2(78, 190),
+      direction: SpikeDirection.up,
+      isInitiallyDeadly: false,
+      isHidden: true,
+      priority: 1,
+      hazardId: "spike_bunker_giant",
+    );
+    add(bunkerGiantSpike);
+
+    // Trigger Zone on Bunker Roof
+    add(TriggerZone(
+      position: Vector2(32, 440),
+      size: Vector2(78, 50),
+      onTrigger: () => bunkerGiantSpike.slideToY(300, speed: 1500),
+    ));
 
     // Victory Altar (Far Right)
     add(PlatformBlock(position: Vector2(640, 500), size: Vector2(128, 100)));
