@@ -257,16 +257,10 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
             ),
           ),
 
-          // Mobile / Virtual Controls Overlay (if enabled)
-          if (_showVirtualControls)
-            VirtualControlsOverlay(game: _game),
-
-          // Game Over / Tap to Retry Overlay (shown only when dead)
+          // Game Over Overlay (shown only when dead, does NOT tap-anywhere to retry)
           if (_isPlayerDead)
             Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _game.respawnPlayer(),
+              child: IgnorePointer(
                 child: Container(
                   color: Colors.black.withValues(alpha: 0.35),
                   child: Center(
@@ -286,7 +280,7 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                             borderWidth: 2,
                           ),
                           child: Text(
-                            "PRESS [R] OR TAP ANYWHERE TO RETRY",
+                            "PRESS [R] TO RETRY",
                             style: RetroTheme.pixelText(fontSize: 13, color: RetroTheme.yellow),
                           ),
                         ),
@@ -296,6 +290,10 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                 ),
               ),
             ),
+
+          // Mobile / Virtual Controls Overlay (if enabled, placed over Game Over so [R] button is clickable)
+          if (_showVirtualControls)
+            VirtualControlsOverlay(game: _game),
 
           // Top HUD Overlay (Placed on top so Menu is always clickable!)
           ValueListenableBuilder<bool>(

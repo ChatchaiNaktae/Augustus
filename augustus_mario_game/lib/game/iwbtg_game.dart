@@ -136,17 +136,10 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   KeyEventResult onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (player == null) return KeyEventResult.ignored;
 
-    // When dead, allow instant retry with R, Space, Enter, Up, W, Z, J, or K
+    // When dead, allow instant retry ONLY with key R
     if (!player!.isAlive) {
       if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.keyR ||
-            event.logicalKey == LogicalKeyboardKey.space ||
-            event.logicalKey == LogicalKeyboardKey.enter ||
-            event.logicalKey == LogicalKeyboardKey.arrowUp ||
-            event.logicalKey == LogicalKeyboardKey.keyW ||
-            event.logicalKey == LogicalKeyboardKey.keyZ ||
-            event.logicalKey == LogicalKeyboardKey.keyJ ||
-            event.logicalKey == LogicalKeyboardKey.keyK) {
+        if (event.logicalKey == LogicalKeyboardKey.keyR) {
           respawnPlayer();
           return KeyEventResult.handled;
         }

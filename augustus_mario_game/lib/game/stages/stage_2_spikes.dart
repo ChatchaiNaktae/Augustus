@@ -60,10 +60,10 @@ class Stage2Spikes extends StageBase {
     );
     add(giantRightWallSpike);
 
-    // Floor Trigger Zone 2 (Point 2): Armed once player reaches Platform 2. If player falls back down, triggers giant spike!
+    // Floor Trigger Zone 2 (Point 2): Armed once player reaches Platform 2. Expanded vertically (y: 440..568) under Platform 1 to floor!
     floorSpawnTrigger = TriggerZone(
-      position: Vector2(32, 520),
-      size: Vector2(160, 48),
+      position: Vector2(32, 440),
+      size: Vector2(160, 128),
       isEnabled: false,
       onTrigger: () => giantRightWallSpike.slideTo(32, speed: 1400),
     );
