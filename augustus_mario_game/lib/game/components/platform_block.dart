@@ -14,6 +14,7 @@ class PlatformBlock extends PositionComponent with CollisionCallbacks {
     this.fillColor = GameConstants.tileColor,
     this.borderColor = GameConstants.tileBorderColor,
     this.isOneWay = false,
+    super.priority,
   }) : super(position: position, size: size) {
     add(RectangleHitbox(collisionType: CollisionType.passive));
   }

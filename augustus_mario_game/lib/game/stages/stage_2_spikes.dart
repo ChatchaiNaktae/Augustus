@@ -42,8 +42,42 @@ class Stage2Spikes extends StageBase {
     }
 
     // 2. Platforms & Labyrinth Ledges
-    add(PlatformBlock(position: Vector2(120, 430), size: Vector2(80, 24)));
-    add(PlatformBlock(position: Vector2(240, 340), size: Vector2(80, 24)));
+    // Platform 1 (Image 1 Req 2): Crumbles and collapses after standing for 3 seconds!
+    final platform1 = CollapsingBlock(
+      position: Vector2(120, 430),
+      size: Vector2(80, 24),
+      collapseDelay: 3.0,
+      warningDuration: 1.0,
+      hazardId: "platform_1_crumbling",
+    );
+    add(platform1);
+
+    // Platform 2: Rendered with priority 2 to cover the hidden left spike behind its left edge
+    final platform2 = PlatformBlock(
+      position: Vector2(240, 340),
+      size: Vector2(80, 24),
+      priority: 2,
+    );
+    add(platform2);
+
+    // Trap (Image 1 Req 1): Hidden Left Spike concealed behind Platform 2 (priority 1)
+    // When player approaches Platform 1's right edge, it slowly emerges 32px out to x=208
+    final hiddenLeftSpike = SpikeHazard(
+      position: Vector2(240, 340),
+      customSize: Vector2(32, 24),
+      direction: SpikeDirection.left,
+      isInitiallyDeadly: false,
+      priority: 1,
+      hazardId: "spike_hidden_left",
+    );
+    add(hiddenLeftSpike);
+
+    // Trigger Zone: Catches player approaching right edge of Platform 1
+    add(TriggerZone(
+      position: Vector2(175, 390),
+      size: Vector2(30, 45),
+      onTrigger: () => hiddenLeftSpike.slideTo(208, speed: 100),
+    ));
 
     // Mid-height resting platform (Slides to x=460 when triggered mid-air)
     final midPlatform = MovingPlatformBlock(

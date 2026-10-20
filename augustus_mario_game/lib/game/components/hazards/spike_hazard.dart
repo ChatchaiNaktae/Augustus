@@ -20,6 +20,8 @@ class SpikeHazard extends HazardBase {
   Vector2 _velocity = Vector2.zero();
   bool _active = false;
 
+  final bool isInitiallyDeadly;
+
   SpikeHazard({
     required super.position,
     this.direction = SpikeDirection.up,
@@ -27,13 +29,16 @@ class SpikeHazard extends HazardBase {
     this.isTriggered = false,
     this.stopAtX,
     this.isHidden = false,
+    this.isInitiallyDeadly = true,
     super.hazardId,
+    super.priority,
     double size = 32.0,
+    Vector2? customSize,
   })  : _initialPosition = position!.clone(),
         _initialHidden = isHidden,
         _stopAtX = stopAtX,
-        super(size: Vector2.all(size)) {
-    if (isHidden) {
+        super(size: customSize ?? Vector2.all(size)) {
+    if (isHidden || !isInitiallyDeadly) {
       isDeadly = false;
     }
     // Add polygon hitbox matching the spike triangle
@@ -98,8 +103,8 @@ class SpikeHazard extends HazardBase {
   void slideTo(double targetX, {double speed = 850}) {
     if (isHidden) {
       isHidden = false;
-      isDeadly = true;
     }
+    isDeadly = true;
     _active = true;
     _stopAtX = targetX;
     if (targetX < position.x) {
@@ -116,7 +121,7 @@ class SpikeHazard extends HazardBase {
     _active = false;
     _stopAtX = stopAtX;
     isHidden = _initialHidden;
-    isDeadly = !_initialHidden;
+    isDeadly = !_initialHidden && isInitiallyDeadly;
   }
 
   @override
