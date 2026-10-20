@@ -29,14 +29,17 @@ class Stage3Leap extends StageBase {
     add(PlatformBlock(position: Vector2(0, 0), size: Vector2(GameConstants.gameWidth, 32)));
 
     // Starting Ledge
-    add(PlatformBlock(position: Vector2(0, 568), size: Vector2(150, 32)));
+    add(PlatformBlock(position: Vector2(0, 568), size: Vector2(160, 32)));
 
     // Victory Altar (Far Right)
-    add(PlatformBlock(position: Vector2(650, 500), size: Vector2(120, 100)));
+    add(PlatformBlock(position: Vector2(640, 500), size: Vector2(128, 100)));
 
-    // Bottomless Spike Pit across the entire bottom
-    for (double x = 150; x < 650; x += 32) {
-      add(SpikeHazard(position: Vector2(x, 568), direction: SpikeDirection.up));
+    // Bottomless Spike Pit across the entire bottom (x: 160 to 640 = 480px = 15 spikes)
+    // leapSpike1 replaces the spike at x = 224 (index 2) so they don't overlap!
+    for (double x = 160; x < 640; x += 32) {
+      if ((x - 224).abs() > 1) {
+        add(SpikeHazard(position: Vector2(x, 568), direction: SpikeDirection.up));
+      }
     }
 
     // 2. High Altitude Stepping Stones
@@ -57,9 +60,9 @@ class Stage3Leap extends StageBase {
 
     // 3. Handcrafted IWBTG Troll Traps (Point-Blank Proximity)!
 
-    // Trap 1: Surprise Leaping Pit Spike during the first leap
+    // Trap 1: Surprise Leaping Pit Spike during the first leap (snapped to 32px grid slot x: 224)
     final leapSpike1 = SpikeHazard(
-      position: Vector2(230, 568),
+      position: Vector2(224, 568),
       direction: SpikeDirection.up,
       triggerVelocity: Vector2(0, -1150),
       hazardId: "spike_leap_1",
@@ -67,7 +70,7 @@ class Stage3Leap extends StageBase {
     add(leapSpike1);
 
     add(TriggerZone(
-      position: Vector2(225, 420),
+      position: Vector2(220, 420),
       size: Vector2(18, 40),
       onTrigger: () => leapSpike1.trigger(),
     ));
@@ -86,30 +89,7 @@ class Stage3Leap extends StageBase {
       onTrigger: () => collapseApple.trigger(),
     ));
 
-    // Trap 3: Crossfire Apples! Ambush as player lands on mid platform (x: 425-445)
-    final appleLeft = AppleHazard(
-      position: Vector2(200, 250),
-      behavior: AppleBehavior.flyRight,
-      hazardId: "apple_cross_1",
-    );
-    final appleRight = AppleHazard(
-      position: Vector2(480, 250),
-      behavior: AppleBehavior.flyLeft,
-      hazardId: "apple_cross_2",
-    );
-    add(appleLeft);
-    add(appleRight);
-
-    add(TriggerZone(
-      position: Vector2(425, 295),
-      size: Vector2(20, 25),
-      onTrigger: () {
-        appleLeft.trigger();
-        appleRight.trigger();
-      },
-    ));
-
-    // Trap 4: Ceiling Ambush Spike directly above Platform 4 (x: 545-565)
+    // Trap 3: Ceiling Ambush Spike directly above Platform 4 (x: 545-565)
     final dropSpike = SpikeHazard(
       position: Vector2(550, 32),
       direction: SpikeDirection.down,
