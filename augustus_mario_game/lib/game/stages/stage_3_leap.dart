@@ -38,8 +38,11 @@ class Stage3Leap extends StageBase {
     add(PlatformBlock(position: Vector2(640, 500), size: Vector2(128, 100)));
 
     // Bottomless Spike Pit across the entire bottom (x: 160 to 640 = 480px = 15 spikes)
+    // leapSpike1 replaces the spike at x = 224 (index 2) so they don't overlap!
     for (double x = 160; x < 640; x += 32) {
-      add(SpikeHazard(position: Vector2(x, 568), direction: SpikeDirection.up));
+      if ((x - 224).abs() > 1) {
+        add(SpikeHazard(position: Vector2(x, 568), direction: SpikeDirection.up));
+      }
     }
 
     // 2. High Altitude Stepping Stones
@@ -58,10 +61,59 @@ class Stage3Leap extends StageBase {
     // Platform 4 before the leap
     add(PlatformBlock(position: Vector2(530, 380), size: Vector2(70, 20)));
 
-    // 3. Top-Right Sniper Hazard (Aiming Raycast Laser + Bullet every 3s)
+    // 3. Handcrafted IWBTG Troll Traps!
+
+    // Trap 1: Surprise Leaping Pit Spike during the first leap (snapped to 32px grid slot x: 224)
+    final leapSpike1 = SpikeHazard(
+      position: Vector2(224, 568),
+      direction: SpikeDirection.up,
+      triggerVelocity: Vector2(0, -1150),
+      hazardId: "spike_leap_1",
+    );
+    add(leapSpike1);
+
+    add(TriggerZone(
+      position: Vector2(220, 420),
+      size: Vector2(18, 40),
+      onTrigger: () => leapSpike1.trigger(),
+    ));
+
+    // Trap 2: Ceiling Ambush Spike directly above Platform 4 (x: 545-565)
+    final dropSpike = SpikeHazard(
+      position: Vector2(550, 32),
+      direction: SpikeDirection.down,
+      triggerVelocity: Vector2(0, 1250),
+      hazardId: "spike_altar_drop",
+    );
+    add(dropSpike);
+
+    add(TriggerZone(
+      position: Vector2(545, 355),
+      size: Vector2(18, 25),
+      onTrigger: () => dropSpike.trigger(),
+    ));
+
+    // Trap 3: The Ultimate Trophy Deception Spike!
+    // Sits right before the trophy; launches UP when player is within 15px of the trophy
+    final trollSpike = SpikeHazard(
+      position: Vector2(670, 468),
+      direction: SpikeDirection.up,
+      triggerVelocity: Vector2(0, -1150),
+      hazardId: "spike_trophy_troll",
+    );
+    add(trollSpike);
+
+    // Point-blank proximity trigger right in front of the trophy (x: 665-680)
+    add(TriggerZone(
+      position: Vector2(665, 450),
+      size: Vector2(15, 50),
+      onTrigger: () => trollSpike.trigger(),
+    ));
+
+    // 4. Top-Right Sniper Hazard (Aiming Raycast Laser + Bullet every 3s)
     add(SniperHazard(position: Vector2(740, 65)));
 
-    // 4. The Golden Trophy (Touching triggers victory!)
+    // 5. The Golden Trophy (Touching triggers victory!)
     add(TriggerZone(
       position: Vector2(710, 450),
       size: Vector2(40, 50),
