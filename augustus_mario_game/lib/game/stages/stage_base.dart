@@ -3,6 +3,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../iwbtg_game.dart';
 import '../components/platform_block.dart';
+import '../components/moving_platform_block.dart';
 import '../components/hazards/hazard_base.dart';
 import '../components/hazards/collapsing_block.dart';
 import '../components/hazards/trigger_zone.dart';
@@ -76,6 +77,13 @@ abstract class StageBase extends Component with HasGameReference<IWBTGGame> {
     }
     final Set<CollapsingBlock> allCollapsing = {...collapsingPlatforms, ...children.whereType<CollapsingBlock>()};
     for (final block in allCollapsing) {
+      block.reset();
+    }
+    final Set<MovingPlatformBlock> allMoving = {
+      ...platforms.whereType<MovingPlatformBlock>(),
+      ...children.whereType<MovingPlatformBlock>(),
+    };
+    for (final block in allMoving) {
       block.reset();
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'stage_base.dart';
 import '../game_constants.dart';
 import '../components/platform_block.dart';
+import '../components/moving_platform_block.dart';
 import '../components/hazards/spike_hazard.dart';
 import '../components/hazards/collapsing_block.dart';
 import '../components/hazards/trigger_zone.dart';
@@ -44,8 +45,14 @@ class Stage2Spikes extends StageBase {
     add(PlatformBlock(position: Vector2(120, 430), size: Vector2(80, 24)));
     add(PlatformBlock(position: Vector2(240, 340), size: Vector2(80, 24)));
 
-    // Mid-height resting platform
-    add(PlatformBlock(position: Vector2(400, 240), size: Vector2(100, 24)));
+    // Mid-height resting platform (Slides to x=460 when triggered mid-air)
+    final midPlatform = MovingPlatformBlock(
+      position: Vector2(400, 240),
+      targetPosition: Vector2(460, 240),
+      size: Vector2(100, 24),
+      moveSpeed: 180,
+    );
+    add(midPlatform);
 
     // Collapsing Fake Floor between platforms!
     final fakePlatform = CollapsingBlock(
@@ -105,6 +112,13 @@ class Stage2Spikes extends StageBase {
       onTrigger: () => wallSpike.trigger(),
     ));
 
+    // Trap 3B (Image 1): Catches player jumping onto/across Platform 1 to the right
+    add(TriggerZone(
+      position: Vector2(110, 340),
+      size: Vector2(100, 90),
+      onTrigger: () => wallSpike.trigger(),
+    ));
+
     // Trap 4: Surprise Skyward Pit Spike (Occupies x=320 in the pit seamlessly, zero overlap)
     final pitSpike2 = SpikeHazard(
       position: Vector2(320, 568),
@@ -153,6 +167,13 @@ class Stage2Spikes extends StageBase {
     // Ceiling spikes hazard flanking exitGuillotine (x=672, 704[trap], 736 - zero overlap!)
     add(SpikeHazard(position: Vector2(672, 32), direction: SpikeDirection.down));
     add(SpikeHazard(position: Vector2(736, 32), direction: SpikeDirection.down));
+
+    // Trap 7 (Image 2): Mid-air vertical trigger zone that shifts midPlatform to the right
+    add(TriggerZone(
+      position: Vector2(335, 40),
+      size: Vector2(30, 280),
+      onTrigger: () => midPlatform.startMoving(),
+    ));
 
     // 4. Stage Exit Trigger (Upper right corner)
     add(TriggerZone(
