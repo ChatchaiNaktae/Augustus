@@ -3,7 +3,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../game_constants.dart';
 
-/// Single stuck blood mark painted on a solid obstacle (floor, wall, ceiling, spike)
+/// Single stuck blood mark painted on a solid obstacle (floor, wall, ceiling)
 class StuckBloodSplat {
   final Rect rect;
   final Color color;
@@ -54,7 +54,7 @@ class _RayHit {
 }
 
 /// System for simulating death blood fountain with continuous raycast collision
-/// against platforms, walls, floors, and hazards.
+/// against static platforms, walls, and floors.
 class BloodParticleSystem extends PositionComponent {
   /// Persistent blood marks across deaths (retained until stage reload)
   static final List<StuckBloodSplat> persistentSplats = [];
@@ -83,14 +83,14 @@ class BloodParticleSystem extends PositionComponent {
     int count = GameConstants.deathBloodParticleCount,
   })  : _obstacles = obstacles,
         super(position: Vector2.zero(), priority: 10) {
+    // Pure, authentic IWBTG retro blood color palette (various shades of crimson/red)
     final colors = [
-      const Color(0xFFE06C75),
-      const Color(0xFFBE1E2D),
-      const Color(0xFFFF2A2A),
-      const Color(0xFFCC1111),
-      const Color(0xFF881111),
-      const Color(0xFF550505),
-      const Color(0xFFFFFFFF), // occasional sparkle/skull fragment
+      const Color(0xFFE02222), // Bright arterial red
+      const Color(0xFFBE1E2D), // Classic IWBTG crimson
+      const Color(0xFFCC1111), // Vivid blood red
+      const Color(0xFF990000), // Dark blood
+      const Color(0xFF7A0000), // Dried blood
+      const Color(0xFF550000), // Deep coagulated red
     ];
 
     for (int i = 0; i < count; i++) {
@@ -99,17 +99,17 @@ class BloodParticleSystem extends PositionComponent {
           _rng.nextDouble() * (GameConstants.bloodMaxSpeed - GameConstants.bloodMinSpeed);
       final velocity = Vector2(cos(angle) * speed, sin(angle) * speed);
 
-      // Slight burst spread at spawn origin
+      // Natural burst spread around player center
       final startPos = Vector2(
-        origin.x + (_rng.nextDouble() - 0.5) * 8,
-        origin.y + (_rng.nextDouble() - 0.5) * 8,
+        origin.x + (_rng.nextDouble() - 0.5) * 12,
+        origin.y + (_rng.nextDouble() - 0.5) * 14,
       );
 
       _particles.add(
         _BloodDrop(
           position: startPos,
           velocity: velocity,
-          size: 2.5 + _rng.nextDouble() * 3.5,
+          size: 2.0 + _rng.nextDouble() * 2.5,
           color: colors[_rng.nextInt(colors.length)],
         ),
       );
@@ -206,7 +206,7 @@ class BloodParticleSystem extends PositionComponent {
       p.velocity += gravity;
       final to = from + p.velocity * dt;
 
-      // Check raycast against all solid obstacles
+      // Check raycast against static obstacles
       _RayHit? closestHit;
       Rect? closestBox;
 
@@ -221,47 +221,56 @@ class BloodParticleSystem extends PositionComponent {
       }
 
       if (closestHit != null && closestBox != null) {
-        // Hit detected: convert particle into a stuck blood splat decal
-        final normal = closestHit.normal;
-        Rect splatRect;
+        // 80% stick as blood decals, 20% bounce off / disintegrate
+        if (_rng.nextDouble() < 0.80) {
+          final normal = closestHit.normal;
 
-        if (normal.y < 0) {
-          // Top face of platform / floor: wide horizontal splat
-          final w = 3.5 + _rng.nextDouble() * 3.5;
-          final h = 1.5 + _rng.nextDouble() * 1.5;
-          splatRect = Rect.fromLTWH(
-            closestHit.point.x - w / 2,
-            closestBox.top - h * 0.75,
-            w,
-            h,
+          // Natural chunky retro pixel splat size (2x2 to 4x4)
+          final double baseSize = (2 + _rng.nextInt(3)).toDouble(); // 2, 3, or 4 px
+          double splatW = baseSize;
+          double splatH = baseSize;
+
+          if (_rng.nextBool()) {
+            if (normal.y != 0) {
+              splatW += 1.0; // slight horizontal spread on floor/ceiling
+            } else {
+              splatH += 1.0; // slight vertical drip on walls
+            }
+          }
+
+          double splatX = closestHit.point.x - splatW / 2;
+          double splatY = closestHit.point.y - splatH / 2;
+
+          // Align nicely onto the surface edge with subtle random jitter (+- 1.5px)
+          if (normal.y < 0) {
+            // Floor / Platform Top
+            splatY = closestBox.top - splatH + 1.0;
+            splatX += (_rng.nextDouble() - 0.5) * 3.0;
+          } else if (normal.y > 0) {
+            // Ceiling
+            splatY = closestBox.bottom - 1.0;
+            splatX += (_rng.nextDouble() - 0.5) * 3.0;
+          } else if (normal.x < 0) {
+            // Left face of wall
+            splatX = closestBox.left - splatW + 1.0;
+            splatY += (_rng.nextDouble() - 0.5) * 3.0;
+          } else if (normal.x > 0) {
+            // Right face of wall
+            splatX = closestBox.right - 1.0;
+            splatY += (_rng.nextDouble() - 0.5) * 3.0;
+          }
+
+          final splatRect = Rect.fromLTWH(
+            splatX.roundToDouble(),
+            splatY.roundToDouble(),
+            splatW,
+            splatH,
           );
-        } else if (normal.x != 0) {
-          // Left or Right face of wall: vertical drip splat
-          final w = 1.5 + _rng.nextDouble() * 1.5;
-          final h = 3.5 + _rng.nextDouble() * 4.5;
-          final x = normal.x < 0 ? closestBox.left : closestBox.right - w;
-          splatRect = Rect.fromLTWH(
-            x,
-            closestHit.point.y - h * 0.3,
-            w,
-            h,
-          );
-        } else {
-          // Bottom face (ceiling)
-          final w = 3.5 + _rng.nextDouble() * 3.0;
-          final h = 1.5 + _rng.nextDouble() * 1.5;
-          splatRect = Rect.fromLTWH(
-            closestHit.point.x - w / 2,
-            closestBox.bottom,
-            w,
-            h,
-          );
+
+          addStuckSplat(StuckBloodSplat(rect: splatRect, color: p.color));
         }
 
-        // Stick blood to obstacle surface
-        addStuckSplat(StuckBloodSplat(rect: splatRect, color: p.color));
-
-        // Remove from flying particles
+        // Particle done flying
         _particles.removeAt(i);
         continue;
       }

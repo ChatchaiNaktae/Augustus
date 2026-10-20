@@ -88,25 +88,15 @@ abstract class StageBase extends Component with HasGameReference<IWBTGGame> {
     }
   }
 
-  /// Returns all solid obstacle bounding boxes for blood particle raycasting
+  /// Returns all permanent static platform bounding boxes for blood particle raycasting.
+  /// Dynamic hazards (moving spikes, falling blocks, sliding platforms) are excluded
+  /// to prevent phantom floating blood stains after player respawns.
   List<Rect> getSolidObstacleRects() {
     final List<Rect> rects = [];
     final Set<PlatformBlock> allPlatforms = {...platforms, ...children.whereType<PlatformBlock>()};
     for (final block in allPlatforms) {
-      if (block.isSolid) {
+      if (block.isSolid && block is! MovingPlatformBlock) {
         rects.add(block.toRect());
-      }
-    }
-    final Set<CollapsingBlock> allCollapsing = {...collapsingPlatforms, ...children.whereType<CollapsingBlock>()};
-    for (final block in allCollapsing) {
-      if (!block.isFalling) {
-        rects.add(block.toRect());
-      }
-    }
-    final Set<SpikeHazard> allSpikes = {...hazards.whereType<SpikeHazard>(), ...children.whereType<SpikeHazard>()};
-    for (final spike in allSpikes) {
-      if (spike.isDeadly) {
-        rects.add(spike.toRect());
       }
     }
     return rects;
