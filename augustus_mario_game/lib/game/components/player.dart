@@ -248,22 +248,24 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
   bool _hasBlockLeft(PlatformBlock block, List<PlatformBlock> blocks) {
     final bRect = block.toRect();
     return blocks.any((other) {
-      if (other == block) return false;
+      if (other == block || !other.isSolid) return false;
       final oRect = other.toRect();
+      // Only treat as internal continuous seam if walking surfaces (top edges) align
       return (oRect.right - bRect.left).abs() < 1.0 &&
-          oRect.top < bRect.bottom - 2.0 &&
-          oRect.bottom > bRect.top + 2.0;
+          (oRect.top - bRect.top).abs() < 2.0 &&
+          (oRect.bottom - bRect.bottom).abs() < 2.0;
     });
   }
 
   bool _hasBlockRight(PlatformBlock block, List<PlatformBlock> blocks) {
     final bRect = block.toRect();
     return blocks.any((other) {
-      if (other == block) return false;
+      if (other == block || !other.isSolid) return false;
       final oRect = other.toRect();
+      // Only treat as internal continuous seam if walking surfaces (top edges) align
       return (bRect.right - oRect.left).abs() < 1.0 &&
-          oRect.top < bRect.bottom - 2.0 &&
-          oRect.bottom > bRect.top + 2.0;
+          (oRect.top - bRect.top).abs() < 2.0 &&
+          (oRect.bottom - bRect.bottom).abs() < 2.0;
     });
   }
 
@@ -332,6 +334,9 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
         }
       }
     }
+
+    // Clamp horizontal position strictly within stage walls to prevent falling out of map
+    position.x = position.x.clamp(32.0, 768.0 - width);
 
     // 2. Vertical movement and collision pass
     position.y += velocity.y * dt;

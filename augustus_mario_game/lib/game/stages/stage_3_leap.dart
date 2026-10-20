@@ -68,7 +68,7 @@ class Stage3Leap extends StageBase {
     ));
 
     // Victory Altar (Far Right)
-    add(PlatformBlock(position: Vector2(640, 500), size: Vector2(128, 100)));
+    add(PlatformBlock(position: Vector2(640, 500), size: Vector2(128, 100), priority: 2));
 
     // Bottomless Spike Pit across the entire bottom (x: 160 to 640 = 480px = 15 spikes)
     // leapSpike1 replaces the spike at x = 224 (index 2) so they don't overlap!
@@ -127,19 +127,22 @@ class Stage3Leap extends StageBase {
     ));
 
     // Trap 3: The Ultimate Trophy Deception Spike!
-    // Sits right before the trophy; launches UP when player is within 15px of the trophy
+    // Hidden underneath the altar floor (y=500); launches UP when player approaches in proximity
     final trollSpike = SpikeHazard(
-      position: Vector2(670, 468),
+      position: Vector2(670, 500),
       direction: SpikeDirection.up,
       triggerVelocity: Vector2(0, -1150),
+      isInitiallyDeadly: false,
+      isHidden: true,
+      priority: 1,
       hazardId: "spike_trophy_troll",
     );
     add(trollSpike);
 
-    // Point-blank proximity trigger right in front of the trophy (x: 665-680)
+    // Point-blank proximity trigger right in front of the trophy (x: 660-685)
     add(TriggerZone(
-      position: Vector2(665, 450),
-      size: Vector2(15, 50),
+      position: Vector2(660, 440),
+      size: Vector2(25, 60),
       onTrigger: () => trollSpike.trigger(),
     ));
 
