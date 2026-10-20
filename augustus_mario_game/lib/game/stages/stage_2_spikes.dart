@@ -27,12 +27,16 @@ class Stage2Spikes extends StageBase {
     // Right Wall (with exit opening at top right)
     add(PlatformBlock(position: Vector2(768, 200), size: Vector2(32, 400)));
 
-    // Floor with spike pit
-    add(PlatformBlock(position: Vector2(0, 568), size: Vector2(180, 32)));
-    add(PlatformBlock(position: Vector2(600, 568), size: Vector2(200, 32)));
+    // Floor with spike pit (416px pit = exactly 13 spikes of 32px, perfectly flush with floors)
+    add(PlatformBlock(position: Vector2(0, 568), size: Vector2(192, 32)));
+    add(PlatformBlock(position: Vector2(608, 568), size: Vector2(192, 32)));
 
-    // Floor Spikes in the middle pit
-    for (double x = 180; x < 600; x += 32) {
+    // Floor Spikes in the middle pit (192 to 608)
+    // x = 320 is reserved for pitSpike2 so spikes never overlap!
+    for (double x = 192; x < 608; x += 32) {
+      if ((x - 320).abs() < 1.0) {
+        continue;
+      }
       add(SpikeHazard(position: Vector2(x, 568), direction: SpikeDirection.up));
     }
 
@@ -54,11 +58,11 @@ class Stage2Spikes extends StageBase {
     add(PlatformBlock(position: Vector2(560, 200), size: Vector2(90, 24)));
     add(PlatformBlock(position: Vector2(680, 140), size: Vector2(90, 24)));
 
-    // 3. Handcrafted IWBTG Troll Traps (Point-Blank Proximity)!
+    // 3. Handcrafted IWBTG Troll Traps (Point-Blank Proximity, Zero Overlap)!
 
-    // Trap 1: The Guillotine Ceiling Spike (Drops only when player is directly underneath x: 252-270)
+    // Trap 1: The Guillotine Ceiling Spike (Drops only when player is directly underneath x: 248-266)
     final guillotineSpike = SpikeHazard(
-      position: Vector2(260, 32),
+      position: Vector2(256, 32),
       direction: SpikeDirection.down,
       triggerVelocity: Vector2(0, 1250),
       hazardId: "spike_guillotine",
@@ -66,14 +70,14 @@ class Stage2Spikes extends StageBase {
     add(guillotineSpike);
 
     add(TriggerZone(
-      position: Vector2(252, 315),
+      position: Vector2(248, 315),
       size: Vector2(18, 25),
       onTrigger: () => guillotineSpike.trigger(),
     ));
 
-    // Trap 2: Double Guillotine Fakeout! Drops when player tries to rush right to dodge Trap 1 (x: 282-300)
+    // Trap 2: Double Guillotine Fakeout! Drops when player tries to rush right to dodge Trap 1 (x: 280-298)
     final guillotineSpike2 = SpikeHazard(
-      position: Vector2(290, 32),
+      position: Vector2(288, 32),
       direction: SpikeDirection.down,
       triggerVelocity: Vector2(0, 1250),
       hazardId: "spike_guillotine_2",
@@ -81,7 +85,7 @@ class Stage2Spikes extends StageBase {
     add(guillotineSpike2);
 
     add(TriggerZone(
-      position: Vector2(282, 315),
+      position: Vector2(280, 315),
       size: Vector2(18, 25),
       onTrigger: () => guillotineSpike2.trigger(),
     ));
@@ -101,7 +105,7 @@ class Stage2Spikes extends StageBase {
       onTrigger: () => wallSpike.trigger(),
     ));
 
-    // Trap 4: Surprise Skyward Pit Spike jumping from below the crumbling platform
+    // Trap 4: Surprise Skyward Pit Spike (Occupies x=320 in the pit seamlessly, zero overlap)
     final pitSpike2 = SpikeHazard(
       position: Vector2(320, 568),
       direction: SpikeDirection.up,
@@ -116,24 +120,24 @@ class Stage2Spikes extends StageBase {
       onTrigger: () => pitSpike2.trigger(),
     ));
 
-    // Trap 5: The Rocket Spike (Floor spike shooting straight up as player reaches the edge of platform 560)
+    // Trap 5: The Rocket Spike (Floor spike on right ledge x=608, zero overlap with pit)
     final rocketSpike = SpikeHazard(
-      position: Vector2(600, 536),
+      position: Vector2(608, 536),
       direction: SpikeDirection.up,
-      triggerVelocity: Vector2(0, -1250),
+      triggerVelocity: Vector2(0, -850),
       hazardId: "spike_rocket",
     );
     add(rocketSpike);
 
     add(TriggerZone(
-      position: Vector2(590, 175),
+      position: Vector2(595, 175),
       size: Vector2(20, 25),
       onTrigger: () => rocketSpike.trigger(),
     ));
 
-    // Trap 6: Ceiling spike ambush dropping onto the final platform before exit
+    // Trap 6: Ceiling spike ambush dropping onto the final platform before exit (x=704)
     final exitGuillotine = SpikeHazard(
-      position: Vector2(700, 32),
+      position: Vector2(704, 32),
       direction: SpikeDirection.down,
       triggerVelocity: Vector2(0, 1250),
       hazardId: "spike_exit_guillotine",
@@ -141,15 +145,14 @@ class Stage2Spikes extends StageBase {
     add(exitGuillotine);
 
     add(TriggerZone(
-      position: Vector2(692, 115),
+      position: Vector2(696, 115),
       size: Vector2(18, 25),
       onTrigger: () => exitGuillotine.trigger(),
     ));
 
-    // Ceiling spikes hazard above exit passage to force tight low jumps
-    for (double x = 680; x < 768; x += 32) {
-      add(SpikeHazard(position: Vector2(x, 32), direction: SpikeDirection.down));
-    }
+    // Ceiling spikes hazard flanking exitGuillotine (x=672, 704[trap], 736 - zero overlap!)
+    add(SpikeHazard(position: Vector2(672, 32), direction: SpikeDirection.down));
+    add(SpikeHazard(position: Vector2(736, 32), direction: SpikeDirection.down));
 
     // 4. Stage Exit Trigger (Upper right corner)
     add(TriggerZone(

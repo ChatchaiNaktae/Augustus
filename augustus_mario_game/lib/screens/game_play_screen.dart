@@ -1,5 +1,6 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../game/iwbtg_game.dart';
 import '../game/ui/hud_overlay.dart';
 import '../game/ui/virtual_controls.dart';
@@ -21,6 +22,8 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
   String _currentStageName = "STAGE 1";
   bool _showVirtualControls = true;
   bool _isPlayerDead = false;
+  bool _isPaused = false;
+  BuildContext? _pauseDialogContext;
 
   @override
   void initState() {
@@ -40,89 +43,136 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
         if (mounted) setState(() => _isPlayerDead = isDead);
       },
       onPauseRequested: () {
-        if (mounted) _showPauseMenu();
+        if (mounted) _togglePauseMenu();
       },
     );
   }
 
-  void _showPauseMenu() {
+  void _togglePauseMenu() {
+    if (_isPaused) {
+      _resumeGame();
+    } else {
+      _pauseGame();
+    }
+  }
+
+  void _resumeGame() {
+    if (!_isPaused) return;
+    _isPaused = false;
+    _game.resumeEngine();
+    if (_pauseDialogContext != null && Navigator.of(_pauseDialogContext!).canPop()) {
+      Navigator.of(_pauseDialogContext!).pop();
+    }
+    _pauseDialogContext = null;
+    if (mounted) setState(() {});
+  }
+
+  void _pauseGame() {
+    if (_isPaused) return;
+    _isPaused = true;
+    _game.pauseEngine();
+    if (mounted) setState(() {});
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: RetroTheme.surface,
-        shape: const RoundedRectangleBorder(
-          side: BorderSide(color: RetroTheme.yellow, width: 3),
-        ),
-        title: Center(
-          child: Text(
-            "PAUSED",
-            style: RetroTheme.titleStyle(fontSize: 24, color: RetroTheme.yellow),
+      builder: (ctx) {
+        _pauseDialogContext = ctx;
+        return KeyboardListener(
+          focusNode: FocusNode()..requestFocus(),
+          autofocus: true,
+          onKeyEvent: (event) {
+            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+              _resumeGame();
+            }
+          },
+          child: AlertDialog(
+            backgroundColor: RetroTheme.surface,
+            shape: const RoundedRectangleBorder(
+              side: BorderSide(color: RetroTheme.yellow, width: 3),
+            ),
+            title: Center(
+              child: Text(
+                "PAUSED",
+                style: RetroTheme.titleStyle(fontSize: 24, color: RetroTheme.yellow),
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "CURRENT DEATHS: $_deathCount",
+                  style: RetroTheme.pixelText(fontSize: 14, color: RetroTheme.primary),
+                ),
+                const SizedBox(height: 24),
+                RetroButton(
+                  label: "RESUME",
+                  icon: Icons.play_arrow_rounded,
+                  baseColor: RetroTheme.green,
+                  textColor: Colors.black,
+                  width: 200,
+                  height: 46,
+                  onPressed: _resumeGame,
+                ),
+                const SizedBox(height: 12),
+                RetroButton(
+                  label: "RESTART STAGE",
+                  icon: Icons.refresh_rounded,
+                  baseColor: RetroTheme.primary,
+                  textColor: Colors.white,
+                  width: 200,
+                  height: 46,
+                  onPressed: () {
+                    _resumeGame();
+                    _game.restartCurrentStage();
+                  },
+                ),
+                const SizedBox(height: 12),
+                RetroButton(
+                  label: "SELECT STAGE",
+                  icon: Icons.grid_view_rounded,
+                  baseColor: RetroTheme.accent,
+                  textColor: Colors.black,
+                  width: 200,
+                  height: 46,
+                  onPressed: () {
+                    _isPaused = false;
+                    _game.resumeEngine();
+                    Navigator.of(ctx).pop();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SelectStageScreen()),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                RetroButton(
+                  label: "MAIN MENU",
+                  icon: Icons.home_rounded,
+                  baseColor: const Color(0xFF4C566A),
+                  textColor: Colors.white,
+                  width: 200,
+                  height: 46,
+                  onPressed: () {
+                    _isPaused = false;
+                    _game.resumeEngine();
+                    Navigator.of(ctx).pop();
+                    Navigator.pop(context); // Back to MainMenuScreen
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              "CURRENT DEATHS: $_deathCount",
-              style: RetroTheme.pixelText(fontSize: 14, color: RetroTheme.primary),
-            ),
-            const SizedBox(height: 24),
-            RetroButton(
-              label: "RESUME",
-              icon: Icons.play_arrow_rounded,
-              baseColor: RetroTheme.green,
-              textColor: Colors.black,
-              width: 200,
-              height: 46,
-              onPressed: () => Navigator.pop(ctx),
-            ),
-            const SizedBox(height: 12),
-            RetroButton(
-              label: "RESTART STAGE",
-              icon: Icons.refresh_rounded,
-              baseColor: RetroTheme.primary,
-              textColor: Colors.white,
-              width: 200,
-              height: 46,
-              onPressed: () {
-                Navigator.pop(ctx);
-                _game.restartCurrentStage();
-              },
-            ),
-            const SizedBox(height: 12),
-            RetroButton(
-              label: "SELECT STAGE",
-              icon: Icons.grid_view_rounded,
-              baseColor: RetroTheme.accent,
-              textColor: Colors.black,
-              width: 200,
-              height: 46,
-              onPressed: () {
-                Navigator.pop(ctx);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SelectStageScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            RetroButton(
-              label: "MAIN MENU",
-              icon: Icons.home_rounded,
-              baseColor: const Color(0xFF4C566A),
-              textColor: Colors.white,
-              width: 200,
-              height: 46,
-              onPressed: () {
-                Navigator.pop(ctx);
-                Navigator.pop(context); // Back to MainMenuScreen
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+        );
+      },
+    ).then((_) {
+      if (_isPaused) {
+        _isPaused = false;
+        _game.resumeEngine();
+        _pauseDialogContext = null;
+        if (mounted) setState(() {});
+      }
+    });
   }
 
   void _showVictoryDialog() {
@@ -260,7 +310,7 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                   setState(() => _showVirtualControls = !_showVirtualControls);
                 },
                 onToggleHitbox: _game.toggleHazardHitboxes,
-                onMenuPressed: _showPauseMenu,
+                onMenuPressed: _togglePauseMenu,
               );
             },
           ),
