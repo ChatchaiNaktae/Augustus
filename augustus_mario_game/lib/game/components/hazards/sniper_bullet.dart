@@ -16,8 +16,8 @@ class _RayHit {
 class SniperBullet extends PositionComponent with HasGameReference<IWBTGGame> {
   final Vector2 velocity;
   final double angleRad;
-  static const double bulletSpeed = 1500.0;
-  static const double bulletLength = 16.0;
+  static const double bulletSpeed = 4500.0;
+  static const double bulletLength = 32.0;
 
   SniperBullet({
     required Vector2 startPos,
