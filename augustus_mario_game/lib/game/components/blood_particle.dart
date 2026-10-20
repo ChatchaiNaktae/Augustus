@@ -3,6 +3,33 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../game_constants.dart';
 
+/// Single stuck blood mark painted on a solid obstacle (floor, wall, ceiling, spike)
+class StuckBloodSplat {
+  final Rect rect;
+  final Color color;
+
+  const StuckBloodSplat({
+    required this.rect,
+    required this.color,
+  });
+}
+
+/// Permanent decal layer that renders accumulated blood stains across deaths
+class BloodDecalComponent extends Component {
+  BloodDecalComponent() : super(priority: 5);
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    final paint = Paint()..style = PaintingStyle.fill;
+    for (final splat in BloodParticleSystem.persistentSplats) {
+      paint.color = splat.color;
+      canvas.drawRect(splat.rect, paint);
+    }
+  }
+}
+
+/// Active flying blood drop particle
 class _BloodDrop {
   Vector2 position;
   Vector2 velocity;
@@ -18,22 +45,52 @@ class _BloodDrop {
   }) : alpha = 1.0;
 }
 
+class _RayHit {
+  final double t;
+  final Vector2 point;
+  final Vector2 normal;
+
+  _RayHit({required this.t, required this.point, required this.normal});
+}
+
+/// System for simulating death blood fountain with continuous raycast collision
+/// against platforms, walls, floors, and hazards.
 class BloodParticleSystem extends PositionComponent {
+  /// Persistent blood marks across deaths (retained until stage reload)
+  static final List<StuckBloodSplat> persistentSplats = [];
+  static const int maxPersistentSplats = 1500;
+
+  static void clearPersistentSplats() {
+    persistentSplats.clear();
+  }
+
+  static void addStuckSplat(StuckBloodSplat splat) {
+    persistentSplats.add(splat);
+    if (persistentSplats.length > maxPersistentSplats) {
+      persistentSplats.removeRange(0, persistentSplats.length - maxPersistentSplats);
+    }
+  }
+
   final List<_BloodDrop> _particles = [];
+  final List<Rect> _obstacles;
   final Random _rng = Random();
   double _lifeTimer = 0.0;
   static const double maxLifetime = GameConstants.bloodLifetime;
 
   BloodParticleSystem({
     required Vector2 origin,
+    List<Rect> obstacles = const [],
     int count = GameConstants.deathBloodParticleCount,
-  }) : super(position: origin) {
+  })  : _obstacles = obstacles,
+        super(position: Vector2.zero(), priority: 10) {
     final colors = [
       const Color(0xFFE06C75),
-      const Color(0xFFBE5046),
+      const Color(0xFFBE1E2D),
       const Color(0xFFFF2A2A),
+      const Color(0xFFCC1111),
       const Color(0xFF881111),
-      const Color(0xFFFFFFFF), // occasional skull/sparkle
+      const Color(0xFF550505),
+      const Color(0xFFFFFFFF), // occasional sparkle/skull fragment
     ];
 
     for (int i = 0; i < count; i++) {
@@ -42,9 +99,15 @@ class BloodParticleSystem extends PositionComponent {
           _rng.nextDouble() * (GameConstants.bloodMaxSpeed - GameConstants.bloodMinSpeed);
       final velocity = Vector2(cos(angle) * speed, sin(angle) * speed);
 
+      // Slight burst spread at spawn origin
+      final startPos = Vector2(
+        origin.x + (_rng.nextDouble() - 0.5) * 8,
+        origin.y + (_rng.nextDouble() - 0.5) * 8,
+      );
+
       _particles.add(
         _BloodDrop(
-          position: Vector2((_rng.nextDouble() - 0.5) * 10, (_rng.nextDouble() - 0.5) * 10),
+          position: startPos,
           velocity: velocity,
           size: 2.5 + _rng.nextDouble() * 3.5,
           color: colors[_rng.nextInt(colors.length)],
@@ -53,24 +116,173 @@ class BloodParticleSystem extends PositionComponent {
     }
   }
 
+  /// Raycast continuous line segment against an axis-aligned bounding box (AABB)
+  _RayHit? _raycastAABB(Vector2 p0, Vector2 p1, Rect box) {
+    if (box.contains(Offset(p0.x, p0.y))) {
+      return _RayHit(t: 0.0, point: p0, normal: Vector2(0, -1));
+    }
+
+    final double dx = p1.x - p0.x;
+    final double dy = p1.y - p0.y;
+
+    double tNearX;
+    double tFarX;
+    double normalNearX;
+
+    if (dx.abs() < 1e-6) {
+      if (p0.x < box.left || p0.x > box.right) return null;
+      tNearX = -double.infinity;
+      tFarX = double.infinity;
+      normalNearX = 0;
+    } else {
+      final double invDx = 1.0 / dx;
+      final double t1 = (box.left - p0.x) * invDx;
+      final double t2 = (box.right - p0.x) * invDx;
+      if (t1 < t2) {
+        tNearX = t1;
+        tFarX = t2;
+        normalNearX = -1.0; // Left face
+      } else {
+        tNearX = t2;
+        tFarX = t1;
+        normalNearX = 1.0; // Right face
+      }
+    }
+
+    double tNearY;
+    double tFarY;
+    double normalNearY;
+
+    if (dy.abs() < 1e-6) {
+      if (p0.y < box.top || p0.y > box.bottom) return null;
+      tNearY = -double.infinity;
+      tFarY = double.infinity;
+      normalNearY = 0;
+    } else {
+      final double invDy = 1.0 / dy;
+      final double t1 = (box.top - p0.y) * invDy;
+      final double t2 = (box.bottom - p0.y) * invDy;
+      if (t1 < t2) {
+        tNearY = t1;
+        tFarY = t2;
+        normalNearY = -1.0; // Top face (Floor)
+      } else {
+        tNearY = t2;
+        tFarY = t1;
+        normalNearY = 1.0; // Bottom face (Ceiling)
+      }
+    }
+
+    final double tNear = max(tNearX, tNearY);
+    final double tFar = min(tFarX, tFarY);
+
+    if (tNear > tFar || tFar < 0.0 || tNear > 1.0) {
+      return null;
+    }
+
+    final double t = tNear.clamp(0.0, 1.0);
+    final Vector2 hitPoint = p0 + (p1 - p0) * t;
+
+    Vector2 hitNormal;
+    if (tNearX > tNearY) {
+      hitNormal = Vector2(normalNearX, 0);
+    } else {
+      hitNormal = Vector2(0, normalNearY);
+    }
+
+    return _RayHit(t: t, point: hitPoint, normal: hitNormal);
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
     _lifeTimer += dt;
 
-    final gravity = Vector2(0, 750 * dt);
+    final gravity = Vector2(0, 850 * dt);
 
-    for (final p in _particles) {
+    for (int i = _particles.length - 1; i >= 0; i--) {
+      final p = _particles[i];
+      final from = Vector2.copy(p.position);
       p.velocity += gravity;
-      p.position += p.velocity * dt;
+      final to = from + p.velocity * dt;
 
+      // Check raycast against all solid obstacles
+      _RayHit? closestHit;
+      Rect? closestBox;
+
+      for (final box in _obstacles) {
+        final hit = _raycastAABB(from, to, box);
+        if (hit != null) {
+          if (closestHit == null || hit.t < closestHit.t) {
+            closestHit = hit;
+            closestBox = box;
+          }
+        }
+      }
+
+      if (closestHit != null && closestBox != null) {
+        // Hit detected: convert particle into a stuck blood splat decal
+        final normal = closestHit.normal;
+        Rect splatRect;
+
+        if (normal.y < 0) {
+          // Top face of platform / floor: wide horizontal splat
+          final w = 3.5 + _rng.nextDouble() * 3.5;
+          final h = 1.5 + _rng.nextDouble() * 1.5;
+          splatRect = Rect.fromLTWH(
+            closestHit.point.x - w / 2,
+            closestBox.top - h * 0.75,
+            w,
+            h,
+          );
+        } else if (normal.x != 0) {
+          // Left or Right face of wall: vertical drip splat
+          final w = 1.5 + _rng.nextDouble() * 1.5;
+          final h = 3.5 + _rng.nextDouble() * 4.5;
+          final x = normal.x < 0 ? closestBox.left : closestBox.right - w;
+          splatRect = Rect.fromLTWH(
+            x,
+            closestHit.point.y - h * 0.3,
+            w,
+            h,
+          );
+        } else {
+          // Bottom face (ceiling)
+          final w = 3.5 + _rng.nextDouble() * 3.0;
+          final h = 1.5 + _rng.nextDouble() * 1.5;
+          splatRect = Rect.fromLTWH(
+            closestHit.point.x - w / 2,
+            closestBox.bottom,
+            w,
+            h,
+          );
+        }
+
+        // Stick blood to obstacle surface
+        addStuckSplat(StuckBloodSplat(rect: splatRect, color: p.color));
+
+        // Remove from flying particles
+        _particles.removeAt(i);
+        continue;
+      }
+
+      // No collision: continue flying
+      p.position = to;
+
+      // Fade out non-stuck flying particles in the last 30% of lifetime
       if (_lifeTimer > maxLifetime * 0.7) {
         final progress = (_lifeTimer - maxLifetime * 0.7) / (maxLifetime * 0.3);
         p.alpha = (1.0 - progress).clamp(0.0, 1.0);
       }
+
+      // Expire particle if off-screen or faded
+      if (_lifeTimer >= maxLifetime || p.position.y > 650 || p.alpha <= 0) {
+        _particles.removeAt(i);
+      }
     }
 
-    if (_lifeTimer >= maxLifetime) {
+    // Once all flying particles have either stuck or expired, remove this active system
+    if (_particles.isEmpty) {
       removeFromParent();
     }
   }
@@ -79,9 +291,10 @@ class BloodParticleSystem extends PositionComponent {
   void render(Canvas canvas) {
     super.render(canvas);
 
+    final paint = Paint()..style = PaintingStyle.fill;
     for (final p in _particles) {
       if (p.alpha <= 0) continue;
-      final paint = Paint()..color = p.color.withValues(alpha: p.alpha);
+      paint.color = p.color.withValues(alpha: p.alpha);
       canvas.drawRect(
         Rect.fromCenter(center: Offset(p.position.x, p.position.y), width: p.size, height: p.size),
         paint,

@@ -88,6 +88,30 @@ abstract class StageBase extends Component with HasGameReference<IWBTGGame> {
     }
   }
 
+  /// Returns all solid obstacle bounding boxes for blood particle raycasting
+  List<Rect> getSolidObstacleRects() {
+    final List<Rect> rects = [];
+    final Set<PlatformBlock> allPlatforms = {...platforms, ...children.whereType<PlatformBlock>()};
+    for (final block in allPlatforms) {
+      if (block.isSolid) {
+        rects.add(block.toRect());
+      }
+    }
+    final Set<CollapsingBlock> allCollapsing = {...collapsingPlatforms, ...children.whereType<CollapsingBlock>()};
+    for (final block in allCollapsing) {
+      if (!block.isFalling) {
+        rects.add(block.toRect());
+      }
+    }
+    final Set<SpikeHazard> allSpikes = {...hazards.whereType<SpikeHazard>(), ...children.whereType<SpikeHazard>()};
+    for (final spike in allSpikes) {
+      if (spike.isDeadly) {
+        rects.add(spike.toRect());
+      }
+    }
+    return rects;
+  }
+
   void completeStage() {
     game.onStageCleared(stageIndex);
   }

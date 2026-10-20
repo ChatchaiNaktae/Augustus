@@ -89,8 +89,12 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     isAlive = false;
     velocity.setZero();
 
-    // Spawn massive blood explosion
-    parent?.add(BloodParticleSystem(origin: position + size / 2));
+    // Spawn massive blood explosion with surface raycast sticking
+    final obstacles = game.currentStage?.getSolidObstacleRects() ?? [];
+    parent?.add(BloodParticleSystem(
+      origin: position + size / 2,
+      obstacles: obstacles,
+    ));
 
     // Notify game
     game.onPlayerDied();

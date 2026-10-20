@@ -65,8 +65,10 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     player?.removeFromParent();
     currentStage?.removeFromParent();
 
-    // Clean up blood particles from previous run
+    // Clean up blood particles and decals from previous run
     world.children.whereType<BloodParticleSystem>().toList().forEach((b) => b.removeFromParent());
+    world.children.whereType<BloodDecalComponent>().toList().forEach((b) => b.removeFromParent());
+    BloodParticleSystem.clearPersistentSplats();
 
     // Instantiate selected stage
     switch (stageNumber) {
@@ -84,6 +86,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     }
 
     await world.add(currentStage!);
+    await world.add(BloodDecalComponent());
 
     // Spawn player at stage starting position
     player = Player(initialPosition: currentStage!.defaultSpawnPosition);
