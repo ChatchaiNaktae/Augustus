@@ -133,6 +133,7 @@ class MainMenuScreen extends StatelessWidget {
                         style: RetroTheme.pixelText(
                           fontSize: 14,
                           color: RetroTheme.yellow,
+                          hasShadow: false,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -150,6 +151,7 @@ class MainMenuScreen extends StatelessWidget {
                     style: RetroTheme.titleStyle(
                       fontSize: 42,
                       color: Colors.white,
+                      hasShadow: false,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -158,6 +160,7 @@ class MainMenuScreen extends StatelessWidget {
                     style: RetroTheme.pixelText(
                       fontSize: 13,
                       color: RetroTheme.accent,
+                      hasShadow: false,
                     ),
                   ),
                   const SizedBox(height: 48),

@@ -11,30 +11,34 @@ class RetroTheme {
   static const Color white = Color(0xFFABB2BF);
   static const Color pureWhite = Color(0xFFFFFFFF);
 
-  static TextStyle titleStyle({double fontSize = 28, Color color = pureWhite}) {
+  static TextStyle titleStyle({double fontSize = 28, Color color = pureWhite, bool hasShadow = true}) {
     return TextStyle(
       fontSize: fontSize,
       fontWeight: FontWeight.w900,
       fontFamily: 'monospace',
       letterSpacing: 2.0,
       color: color,
-      shadows: const [
-        Shadow(offset: Offset(3, 3), color: Colors.black, blurRadius: 0),
-        Shadow(offset: Offset(-1, -1), color: Color(0x33FFFFFF), blurRadius: 0),
-      ],
+      shadows: hasShadow
+          ? const [
+              Shadow(offset: Offset(3, 3), color: Colors.black, blurRadius: 0),
+              Shadow(offset: Offset(-1, -1), color: Color(0x33FFFFFF), blurRadius: 0),
+            ]
+          : null,
     );
   }
 
-  static TextStyle pixelText({double fontSize = 16, Color color = pureWhite, bool bold = true}) {
+  static TextStyle pixelText({double fontSize = 16, Color color = pureWhite, bool bold = true, bool hasShadow = true}) {
     return TextStyle(
       fontSize: fontSize,
       fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
       fontFamily: 'monospace',
       letterSpacing: 1.2,
       color: color,
-      shadows: const [
-        Shadow(offset: Offset(2, 2), color: Colors.black, blurRadius: 0),
-      ],
+      shadows: hasShadow
+          ? const [
+              Shadow(offset: Offset(2, 2), color: Colors.black, blurRadius: 0),
+            ]
+          : null,
     );
   }
 
@@ -63,6 +67,7 @@ class RetroButton extends StatefulWidget {
   final double height;
   final double fontSize;
   final bool hasShadow;
+  final bool hasTextShadow;
 
   const RetroButton({
     super.key,
@@ -75,6 +80,7 @@ class RetroButton extends StatefulWidget {
     this.height = 54,
     this.fontSize = 16,
     this.hasShadow = true,
+    this.hasTextShadow = false,
   });
 
   @override
@@ -139,6 +145,7 @@ class _RetroButtonState extends State<RetroButton> {
                       style: RetroTheme.pixelText(
                         fontSize: widget.fontSize,
                         color: widget.textColor,
+                        hasShadow: widget.hasTextShadow,
                       ),
                     ),
                   ],
