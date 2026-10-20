@@ -96,6 +96,12 @@ class AboutScreen extends StatelessWidget {
                               _infoRow("สาขา:", "วิทยาการคอมพิวเตอร์"),
                               _infoRow("สถาบัน:", "มหาวิทยาลัยเทคโนโลยีราชมงคลตะวันออก"),
                               _infoRow("อาจารย์ผู้สอน:", "อ.ยศภัทร เรืองไพศาล"),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 4.0),
+                                child: Divider(color: Color(0xFF3B4252), height: 16),
+                              ),
+                              _infoRow("ผู้จัดทำ 1:", "นาย ชัชชัย นาคแท้ 016830641008-0 เลขที่ 6"),
+                              _infoRow("ผู้จัดทำ 2:", "นาย ปุณยกร ธรรมวงษ์ 016830641010-6 เลขที่ 8"),
                             ],
                           ),
                         ),

@@ -171,6 +171,7 @@ class MainMenuScreen extends StatelessWidget {
                     width: 280,
                     height: 56,
                     fontSize: 18,
+                    hasShadow: false,
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -190,6 +191,7 @@ class MainMenuScreen extends StatelessWidget {
                     width: 280,
                     height: 56,
                     fontSize: 18,
+                    hasShadow: false,
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -209,6 +211,7 @@ class MainMenuScreen extends StatelessWidget {
                     width: 280,
                     height: 56,
                     fontSize: 18,
+                    hasShadow: false,
                     onPressed: () => _showHowToPlay(context),
                   ),
                   const SizedBox(height: 18),

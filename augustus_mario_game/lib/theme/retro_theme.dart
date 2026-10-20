@@ -62,6 +62,7 @@ class RetroButton extends StatefulWidget {
   final double width;
   final double height;
   final double fontSize;
+  final bool hasShadow;
 
   const RetroButton({
     super.key,
@@ -73,6 +74,7 @@ class RetroButton extends StatefulWidget {
     this.width = 240,
     this.height = 54,
     this.fontSize = 16,
+    this.hasShadow = true,
   });
 
   @override
@@ -110,12 +112,14 @@ class _RetroButtonState extends State<RetroButton> {
               color: _isHovered ? Colors.white : Colors.black,
               width: 3.0,
             ),
-            boxShadow: [
-              BoxShadow(
-                offset: Offset(offset, offset),
-                color: Colors.black,
-              ),
-            ],
+            boxShadow: widget.hasShadow
+                ? [
+                    BoxShadow(
+                      offset: Offset(offset, offset),
+                      color: Colors.black,
+                    ),
+                  ]
+                : null,
           ),
           child: Center(
             child: Padding(
