@@ -13,6 +13,8 @@ class Stage2Spikes extends StageBase {
   bool isGateClosed = false;
   late TriggerZone topExitTrigger;
   late TriggerZone bottomExitTrigger;
+  late TriggerZone floorSpawnTrigger;
+  late SpikeHazard giantRightWallSpike;
 
   Stage2Spikes()
       : super(
@@ -43,8 +45,29 @@ class Stage2Spikes extends StageBase {
     add(gateWall);
 
     // Floor with spike pit (416px pit = exactly 13 spikes of 32px, perfectly flush with floors)
-    add(PlatformBlock(position: Vector2(0, 568), size: Vector2(192, 32)));
-    add(PlatformBlock(position: Vector2(608, 568), size: Vector2(192, 32)));
+    add(PlatformBlock(position: Vector2(0, 568), size: Vector2(192, 32), priority: 2));
+    add(PlatformBlock(position: Vector2(608, 568), size: Vector2(192, 32), priority: 2));
+
+    // Giant Right Spike (Point 2): Hidden behind left wall, shoots right across floor if player falls back down
+    giantRightWallSpike = SpikeHazard(
+      position: Vector2(-128, 440),
+      customSize: Vector2(160, 128),
+      direction: SpikeDirection.right,
+      isInitiallyDeadly: false,
+      isHidden: true,
+      priority: 1,
+      hazardId: "spike_giant_wall_right",
+    );
+    add(giantRightWallSpike);
+
+    // Floor Trigger Zone 2 (Point 2): Armed once player reaches Platform 2. If player falls back down, triggers giant spike!
+    floorSpawnTrigger = TriggerZone(
+      position: Vector2(32, 520),
+      size: Vector2(160, 48),
+      isEnabled: false,
+      onTrigger: () => giantRightWallSpike.slideTo(32, speed: 1400),
+    );
+    add(floorSpawnTrigger);
 
     // Floor Spikes in the middle pit (192 to 608)
     // x = 320 is reserved for pitSpike2 so spikes never overlap!
@@ -73,6 +96,16 @@ class Stage2Spikes extends StageBase {
       priority: 2,
     );
     add(platform2);
+
+    // Trigger Zone (Point 1): Arms bottom floor trap when player reaches Platform 2
+    add(TriggerZone(
+      position: Vector2(240, 290),
+      size: Vector2(80, 50),
+      triggerOnce: false,
+      onTrigger: () {
+        floorSpawnTrigger.isEnabled = true;
+      },
+    ));
 
     // Trap (Image 1 Req 1): Hidden Left Spike concealed behind Platform 2 (priority 1)
     // When player approaches Platform 1's right edge, it slowly emerges 32px out to x=208
