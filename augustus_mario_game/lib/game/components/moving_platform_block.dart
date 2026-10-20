@@ -23,6 +23,7 @@ class MovingPlatformBlock extends PlatformBlock with HasGameReference<IWBTGGame>
     Color fillColor = GameConstants.tileColor,
     Color borderColor = GameConstants.tileBorderColor,
     bool isOneWay = false,
+    int? priority,
   })  : initialPosition = position.clone(),
         targetPosition = targetPosition.clone(),
         super(
@@ -31,6 +32,7 @@ class MovingPlatformBlock extends PlatformBlock with HasGameReference<IWBTGGame>
           fillColor: fillColor,
           borderColor: borderColor,
           isOneWay: isOneWay,
+          priority: priority,
         );
 
   void startMoving() {

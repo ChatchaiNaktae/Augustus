@@ -8,10 +8,11 @@ abstract class HazardBase extends PositionComponent
   bool isDeadly = true;
 
   HazardBase({
-    required super.position,
-    required super.size,
+    required Vector2 position,
+    required Vector2 size,
     this.hazardId = '',
-  });
+    int? priority,
+  }) : super(position: position, size: size, priority: priority);
 
   void trigger() {}
   void reset() {}
