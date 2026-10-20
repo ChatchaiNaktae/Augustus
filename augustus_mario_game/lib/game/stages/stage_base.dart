@@ -5,6 +5,7 @@ import '../iwbtg_game.dart';
 import '../components/platform_block.dart';
 import '../components/moving_platform_block.dart';
 import '../components/rotating_platform_block.dart';
+import '../components/spawnable_platform_block.dart';
 import '../components/hazards/hazard_base.dart';
 import '../components/hazards/collapsing_block.dart';
 import '../components/hazards/trigger_zone.dart';
@@ -93,6 +94,13 @@ abstract class StageBase extends Component with HasGameReference<IWBTGGame> {
     };
     for (final block in allRotating) {
       block.reset();
+    }
+    final Set<SpawnablePlatformBlock> allSpawnable = {
+      ...platforms.whereType<SpawnablePlatformBlock>(),
+      ...children.whereType<SpawnablePlatformBlock>(),
+    };
+    for (final block in allSpawnable) {
+      block.deactivate();
     }
   }
 

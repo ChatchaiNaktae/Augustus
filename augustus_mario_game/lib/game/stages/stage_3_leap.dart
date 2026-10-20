@@ -4,18 +4,31 @@ import 'stage_base.dart';
 import '../game_constants.dart';
 import '../components/platform_block.dart';
 import '../components/rotating_platform_block.dart';
+import '../components/spawnable_platform_block.dart';
 import '../components/hazards/spike_hazard.dart';
 import '../components/hazards/collapsing_block.dart';
 import '../components/hazards/trigger_zone.dart';
 import '../components/hazards/sniper_hazard.dart';
 
 class Stage3Leap extends StageBase {
+  bool _trophyTrolled = false;
+  final Vector2 _initialTrophyPos = Vector2(730, 475);
+  final Vector2 _trollTrophyPos = Vector2(95, 100);
+  late Vector2 _currentTrophyPos;
+
+  late final TriggerZone _victoryTrigger;
+  late final TriggerZone _trophyTrollTrigger;
+
+  final List<SpawnablePlatformBlock> _spawnedPlatforms = [];
+
   Stage3Leap()
       : super(
           stageName: "STAGE 3: THE LEAP OF FAITH",
           stageIndex: 3,
           defaultSpawnPosition: Vector2(70, 540),
-        );
+        ) {
+    _currentTrophyPos = _initialTrophyPos.clone();
+  }
 
   @override
   Future<void> onLoad() async {
@@ -114,20 +127,96 @@ class Stage3Leap extends StageBase {
     // 4. Top-Right Sniper Hazard (Aiming Raycast Laser + Bullet every 3s)
     add(SniperHazard(position: Vector2(740, 65)));
 
-    // 5. The Golden Trophy (Touching triggers victory!)
-    add(TriggerZone(
+    // 5. Spawnable Platforms
+    // 5.1 Blocking Platform (Spawns at bottom to block descent into the altar)
+    final blockingPlatform = SpawnablePlatformBlock(
+      position: Vector2(640, 440),
+      size: Vector2(100, 20),
+    );
+    add(blockingPlatform);
+    _spawnedPlatforms.add(blockingPlatform);
+
+    // 5.2 Sky Return Platforms (Connecting back from x=640, y=440 to top-left x=95, y=100)
+    final returnPlat1 = SpawnablePlatformBlock(
+      position: Vector2(490, 340),
+      size: Vector2(60, 16),
+    );
+    add(returnPlat1);
+    _spawnedPlatforms.add(returnPlat1);
+
+    final returnPlat2 = SpawnablePlatformBlock(
+      position: Vector2(340, 250),
+      size: Vector2(60, 16),
+    );
+    add(returnPlat2);
+    _spawnedPlatforms.add(returnPlat2);
+
+    final returnPlat3 = SpawnablePlatformBlock(
+      position: Vector2(200, 180),
+      size: Vector2(60, 16),
+    );
+    add(returnPlat3);
+    _spawnedPlatforms.add(returnPlat3);
+
+    final trophyLedge = SpawnablePlatformBlock(
+      position: Vector2(60, 120),
+      size: Vector2(70, 16),
+    );
+    add(trophyLedge);
+    _spawnedPlatforms.add(trophyLedge);
+
+    // 6. Trophy Troll Trigger Zone (Placed mid-air right above the trophy altar)
+    // When player enters this zone in mid-air, spawns blocking platform and teleports trophy to top-left!
+    _trophyTrollTrigger = TriggerZone(
+      position: Vector2(640, 380),
+      size: Vector2(90, 50),
+      triggerOnce: true,
+      onTrigger: () => _onTrophyTrolled(),
+    );
+    add(_trophyTrollTrigger);
+
+    // 7. The Golden Trophy Trigger (Touching triggers victory!)
+    _victoryTrigger = TriggerZone(
       position: Vector2(710, 450),
       size: Vector2(40, 50),
       onTrigger: () => game.onVictory(),
-    ));
+    );
+    add(_victoryTrigger);
+  }
+
+  void _onTrophyTrolled() {
+    if (_trophyTrolled) return;
+    _trophyTrolled = true;
+
+    // Relocate trophy and victory trigger to top-left
+    _currentTrophyPos.setFrom(_trollTrophyPos);
+    _victoryTrigger.position.setValues(75, 75);
+
+    // Activate all spawned platforms immediately
+    for (final plat in _spawnedPlatforms) {
+      plat.activate();
+    }
+  }
+
+  @override
+  void resetHazards() {
+    super.resetHazards();
+    _trophyTrolled = false;
+    _currentTrophyPos.setFrom(_initialTrophyPos);
+    _victoryTrigger.position.setValues(710, 450);
+    _victoryTrigger.reset();
+    _trophyTrollTrigger.reset();
+    for (final plat in _spawnedPlatforms) {
+      plat.deactivate();
+    }
   }
 
   @override
   void render(Canvas canvas) {
     super.render(canvas);
 
-    // Draw Golden Trophy on Altar
-    final trophyCenter = const Offset(730, 475);
+    // Draw Golden Trophy
+    final trophyCenter = Offset(_currentTrophyPos.x, _currentTrophyPos.y);
     final goldPaint = Paint()..color = const Color(0xFFFFD700);
 
     // Cup
@@ -177,6 +266,10 @@ class Stage3Leap extends StageBase {
       textDirection: TextDirection.ltr,
     );
     textPainter.layout();
-    textPainter.paint(canvas, const Offset(665, 435));
+
+    final textOffset = _trophyTrolled
+        ? Offset(trophyCenter.dx - 60, trophyCenter.dy - 38)
+        : const Offset(665, 435);
+    textPainter.paint(canvas, textOffset);
   }
 }
