@@ -31,8 +31,8 @@ class Stage3Leap extends StageBase {
     // Starting Ledge
     add(PlatformBlock(position: Vector2(0, 568), size: Vector2(160, 32)));
 
-    // Bunker Cover above spawn (White Box in player sketch)
-    add(PlatformBlock(position: Vector2(0, 490), size: Vector2(160, 24)));
+    // Bunker Cover above spawn (Shortened according to user sketch in Image 2)
+    add(PlatformBlock(position: Vector2(0, 490), size: Vector2(110, 24)));
 
     // Victory Altar (Far Right)
     add(PlatformBlock(position: Vector2(640, 500), size: Vector2(128, 100)));
