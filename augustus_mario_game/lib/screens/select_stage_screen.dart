@@ -18,7 +18,7 @@ class SelectStageScreen extends StatelessWidget {
               child: Row(
                 children: [
                   RetroButton(
-                    label: "< BACK",
+                    label: "BACK",
                     icon: Icons.arrow_back_rounded,
                     width: 120,
                     height: 42,

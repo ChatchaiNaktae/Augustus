@@ -145,7 +145,7 @@ class MainMenuScreen extends StatelessWidget {
 
                   // Giant Title
                   Text(
-                    "I WANNA BE\nTHAT GUY",
+                    "AUGUSTUS\nBRUTAL",
                     textAlign: TextAlign.center,
                     style: RetroTheme.titleStyle(
                       fontSize: 42,

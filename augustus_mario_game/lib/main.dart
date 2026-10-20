@@ -24,7 +24,7 @@ class IWBTGApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'I Wanna Be That Guy',
+      title: 'Augustus Brutal',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,

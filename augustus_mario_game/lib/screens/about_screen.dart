@@ -17,7 +17,7 @@ class AboutScreen extends StatelessWidget {
               child: Row(
                 children: [
                   RetroButton(
-                    label: "< BACK",
+                    label: "BACK",
                     icon: Icons.arrow_back_rounded,
                     width: 120,
                     height: 42,
@@ -63,7 +63,7 @@ class AboutScreen extends StatelessWidget {
                                 style: RetroTheme.pixelText(fontSize: 16, color: RetroTheme.yellow),
                               ),
                               const SizedBox(height: 12),
-                              _infoRow("ชื่อเกม:", "I Wanna Be That Guy (Flutter Edition)"),
+                              _infoRow("ชื่อเกม:", "Augustus Brutal (Flutter Edition)"),
                               _infoRow("ประเภทเกม:", "2D Masocore Action Platformer"),
                               _infoRow("เครื่องมือพัฒนา:", "Flutter 3.x, Flame Engine, Dart"),
                               _infoRow(
