@@ -389,11 +389,18 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
           velocity.y = 0;
           isOnGround = true;
           cBlock.trigger(); // Trigger collapse
-        } else if (velocity.y < 0 && playerRectY.bottom <= cRect.top + 6.0) {
-          position.y = cRect.top - height;
-          velocity.y = 0;
-          isOnGround = true;
-          cBlock.trigger();
+        } else if (velocity.y < 0) {
+          // Check if hitting exposed ceiling from underneath (solid head bonk)
+          if (prevY >= cRect.bottom - (velocity.y * dt).abs() - 4.0) {
+            position.y = cRect.bottom;
+            velocity.y = 0;
+          } else if (playerRectY.bottom <= cRect.top + 6.0) {
+            // Ledge hop landing: jumped up and feet caught the top edge
+            position.y = cRect.top - height;
+            velocity.y = 0;
+            isOnGround = true;
+            cBlock.trigger();
+          }
         }
       }
     }
