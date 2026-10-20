@@ -64,7 +64,7 @@ class TurretBullet extends PositionComponent with CollisionCallbacks, HasGameRef
   }
 }
 
-/// Rapid-fire Machine Gun Turret on Platform 1
+/// Rapid-fire Machine Gun Turret on Platform 1 with dynamic sweeping arc
 class TurretHazard extends HazardBase with HasGameReference<IWBTGGame> {
   bool isActive = false;
   double _fireTimer = 0.0;
@@ -72,8 +72,15 @@ class TurretHazard extends HazardBase with HasGameReference<IWBTGGame> {
   double _barrelSpinAngle = 0.0;
   static const double shotInterval = 0.16; // Rapid fire rate
 
-  // Shooting angled up-right (around 65 degrees up from horizontal right)
-  final Vector2 shootDirection = Vector2(0.42, -0.91).normalized();
+  // Sweep angles: from ~ -5 deg (right) to ~ -115 deg (up-left) matching user arc
+  static const double minAimAngle = -2.01; // ~ -115 deg (pointing up-left)
+  static const double maxAimAngle = -0.09; // ~ -5 deg (pointing almost horizontal right)
+  static const double sweepSpeed = 1.05;   // ~ 60 deg per second
+
+  double _currentAimAngle = maxAimAngle;
+  int _sweepDir = -1; // Sweeps towards left first
+
+  Vector2 get currentShootDirection => Vector2(cos(_currentAimAngle), sin(_currentAimAngle));
 
   TurretHazard({
     required Vector2 position,
@@ -84,12 +91,14 @@ class TurretHazard extends HazardBase with HasGameReference<IWBTGGame> {
           hazardId: hazardId,
           priority: 8,
         ) {
-    isDeadly = false; // Bullets are deadly; base turret body is non-deadly obstacle/decoration
+    isDeadly = false; // Bullets are deadly; base turret body is non-deadly obstacle
   }
 
   void activateTurret() {
     isActive = true;
     _fireTimer = 0.0;
+    _currentAimAngle = maxAimAngle;
+    _sweepDir = -1;
   }
 
   void deactivateTurret() {
@@ -102,6 +111,8 @@ class TurretHazard extends HazardBase with HasGameReference<IWBTGGame> {
   void reset() {
     super.reset();
     deactivateTurret();
+    _currentAimAngle = maxAimAngle;
+    _sweepDir = -1;
   }
 
   @override
@@ -114,16 +125,28 @@ class TurretHazard extends HazardBase with HasGameReference<IWBTGGame> {
 
     if (isActive) {
       _barrelSpinAngle += dt * 25.0;
+
+      // Sweep turret aim angle back and forth across the arc
+      _currentAimAngle += _sweepDir * sweepSpeed * dt;
+      if (_currentAimAngle <= minAimAngle) {
+        _currentAimAngle = minAimAngle;
+        _sweepDir = 1;
+      } else if (_currentAimAngle >= maxAimAngle) {
+        _currentAimAngle = maxAimAngle;
+        _sweepDir = -1;
+      }
+
       _fireTimer += dt;
       if (_fireTimer >= shotInterval) {
         _fireTimer = 0.0;
         _muzzleFlashTimer = 0.06;
 
-        // Spawn rapid bullet
-        final muzzlePos = position + Vector2(width / 2, 4) + shootDirection * 14.0;
+        // Spawn rapid bullet along current aim angle
+        final dir = currentShootDirection;
+        final muzzlePos = position + Vector2(width / 2, 4) + dir * 14.0;
         parent?.add(TurretBullet(
           startPos: muzzlePos,
-          direction: shootDirection,
+          direction: dir,
           speed: 650.0,
         ));
       }
@@ -145,12 +168,10 @@ class TurretHazard extends HazardBase with HasGameReference<IWBTGGame> {
     final mountPaint = Paint()..color = const Color(0xFF455A64);
     canvas.drawCircle(Offset(width / 2, height - 6), 7.0, mountPaint);
 
-    // 2. Angled Gatling Gun Barrels
-    final aimAngle = atan2(shootDirection.y, shootDirection.x);
-
+    // 2. Angled Gatling Gun Barrels matching current aim angle
     canvas.save();
     canvas.translate(width / 2, height - 8);
-    canvas.rotate(aimAngle);
+    canvas.rotate(_currentAimAngle);
 
     // Barrel housing
     final housingPaint = Paint()..color = const Color(0xFF263238);
