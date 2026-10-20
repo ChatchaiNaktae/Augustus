@@ -65,7 +65,7 @@ class TurretBullet extends PositionComponent with CollisionCallbacks, HasGameRef
 }
 
 /// Rapid-fire Machine Gun Turret on Platform 1 with dynamic sweeping arc
-class TurretHazard extends HazardBase with HasGameReference<IWBTGGame> {
+class TurretHazard extends HazardBase {
   bool isActive = false;
   double _fireTimer = 0.0;
   double _muzzleFlashTimer = 0.0;

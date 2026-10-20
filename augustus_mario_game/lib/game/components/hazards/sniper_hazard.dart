@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import '../../iwbtg_game.dart';
 import 'hazard_base.dart';
 import 'sniper_bullet.dart';
 
