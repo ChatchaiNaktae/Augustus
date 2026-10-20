@@ -14,6 +14,7 @@ class SpikeHazard extends HazardBase {
   final bool isTriggered;
   final double? stopAtX;
   double? _stopAtX;
+  double? _stopAtY;
   bool isHidden;
   final bool _initialHidden;
   final Vector2 _initialPosition;
@@ -119,12 +120,27 @@ class SpikeHazard extends HazardBase {
     }
   }
 
+  void slideToY(double targetY, {double speed = 850}) {
+    if (isHidden) {
+      isHidden = false;
+    }
+    isDeadly = true;
+    _active = true;
+    _stopAtY = targetY;
+    if (targetY < position.y) {
+      _velocity = Vector2(0, -speed);
+    } else {
+      _velocity = Vector2(0, speed);
+    }
+  }
+
   @override
   void reset() {
     position.setFrom(_initialPosition);
     _velocity.setZero();
     _active = false;
     _stopAtX = stopAtX;
+    _stopAtY = null;
     isHidden = _initialHidden;
     isDeadly = !_initialHidden && isInitiallyDeadly;
   }
@@ -149,6 +165,15 @@ class SpikeHazard extends HazardBase {
           _velocity.setZero();
         } else if (_velocity.x > 0 && position.x >= _stopAtX!) {
           position.x = _stopAtX!;
+          _velocity.setZero();
+        }
+      }
+      if (_stopAtY != null) {
+        if (_velocity.y < 0 && position.y <= _stopAtY!) {
+          position.y = _stopAtY!;
+          _velocity.setZero();
+        } else if (_velocity.y > 0 && position.y >= _stopAtY!) {
+          position.y = _stopAtY!;
           _velocity.setZero();
         }
       }

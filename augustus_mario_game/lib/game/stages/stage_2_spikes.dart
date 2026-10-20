@@ -9,6 +9,11 @@ import '../components/hazards/collapsing_block.dart';
 import '../components/hazards/trigger_zone.dart';
 
 class Stage2Spikes extends StageBase {
+  bool isEvent2Armed = false;
+  bool isGateClosed = false;
+  late TriggerZone topExitTrigger;
+  late TriggerZone bottomExitTrigger;
+
   Stage2Spikes()
       : super(
           stageName: "STAGE 2: THE SPIKE LABYRINTH",
@@ -27,6 +32,15 @@ class Stage2Spikes extends StageBase {
     add(PlatformBlock(position: Vector2(0, 0), size: Vector2(GameConstants.gameWidth, 32)));
     // Right Wall (with exit opening at top right)
     add(PlatformBlock(position: Vector2(768, 200), size: Vector2(32, 400)));
+
+    // Event 1 Gate Wall: starts at y=200 (open), slides up to y=32 (closed) when Event 1 triggered
+    final gateWall = MovingPlatformBlock(
+      position: Vector2(768, 200),
+      targetPosition: Vector2(768, 32),
+      size: Vector2(32, 168),
+      moveSpeed: 800,
+    );
+    add(gateWall);
 
     // Floor with spike pit (416px pit = exactly 13 spikes of 32px, perfectly flush with floors)
     add(PlatformBlock(position: Vector2(0, 568), size: Vector2(192, 32)));
@@ -236,23 +250,92 @@ class Stage2Spikes extends StageBase {
       onTrigger: () => midPlatform.startMoving(),
     ));
 
-    // 4. Stage Exit Trigger (Upper right corner)
+    // Event 2 (Image 1 Req 2): Giant Spike on Platform 3 (triggers if player backtracks after Event 1)
+    final platform3GiantSpike = SpikeHazard(
+      position: Vector2(565, 200),
+      customSize: Vector2(80, 100),
+      direction: SpikeDirection.up,
+      isInitiallyDeadly: false,
+      priority: 1,
+      hazardId: "spike_p3_giant",
+    );
+    add(platform3GiantSpike);
+
     add(TriggerZone(
+      position: Vector2(560, 140),
+      size: Vector2(90, 60),
+      triggerOnce: false,
+      onTrigger: () {
+        if (isEvent2Armed) {
+          platform3GiantSpike.slideToY(100, speed: 1400);
+        }
+      },
+    ));
+
+    // Event 3 (Image 1 Req 3): Giant Floor Spike in Chasm (shoots up when player falls into gap)
+    final chasmGiantSpike = SpikeHazard(
+      position: Vector2(635, 568),
+      customSize: Vector2(80, 240),
+      direction: SpikeDirection.up,
+      isInitiallyDeadly: false,
+      priority: 1,
+      hazardId: "spike_chasm_giant",
+    );
+    add(chasmGiantSpike);
+
+    add(TriggerZone(
+      position: Vector2(615, 260),
+      size: Vector2(70, 70),
+      onTrigger: () {
+        chasmGiantSpike.slideToY(328, speed: 1500);
+      },
+    ));
+
+    // 4. Stage Exit & Event 1 (Troll Gate & Exit Relocation)
+    topExitTrigger = TriggerZone(
       position: Vector2(745, 80),
       size: Vector2(25, 60),
       onTrigger: () => completeStage(),
+    );
+    add(topExitTrigger);
+
+    bottomExitTrigger = TriggerZone(
+      position: Vector2(725, 520),
+      size: Vector2(40, 48),
+      isEnabled: false,
+      onTrigger: () => completeStage(),
+    );
+    add(bottomExitTrigger);
+
+    // Trigger Zone 1 (Event 1): Slams gate shut and moves exit to bottom right
+    add(TriggerZone(
+      position: Vector2(690, 90),
+      size: Vector2(35, 50),
+      onTrigger: () {
+        gateWall.startMoving();
+        topExitTrigger.isEnabled = false;
+        bottomExitTrigger.isEnabled = true;
+        isGateClosed = true;
+        isEvent2Armed = true;
+      },
     ));
+  }
+
+  @override
+  void resetHazards() {
+    super.resetHazards();
+    isEvent2Armed = false;
+    isGateClosed = false;
   }
 
   @override
   void render(Canvas canvas) {
     super.render(canvas);
 
-    // Decorative dungeon bricks outline
     final textPainter = TextPainter(
-      text: const TextSpan(
-        text: "STAGE 3 >>",
-        style: TextStyle(
+      text: TextSpan(
+        text: isGateClosed ? "STAGE 3 ↓↓" : "STAGE 3 >>",
+        style: const TextStyle(
           color: Color(0xFFE5C07B),
           fontSize: 14,
           fontWeight: FontWeight.w900,
@@ -262,6 +345,10 @@ class Stage2Spikes extends StageBase {
       textDirection: TextDirection.ltr,
     );
     textPainter.layout();
-    textPainter.paint(canvas, const Offset(680, 80));
+    if (isGateClosed) {
+      textPainter.paint(canvas, const Offset(690, 490));
+    } else {
+      textPainter.paint(canvas, const Offset(680, 80));
+    }
   }
 }

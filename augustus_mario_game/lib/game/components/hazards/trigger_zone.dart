@@ -7,6 +7,8 @@ class TriggerZone extends PositionComponent with CollisionCallbacks {
   final List<String> targetHazardIds;
   final VoidCallback? onTrigger;
   final bool triggerOnce;
+  final bool defaultEnabled;
+  bool isEnabled;
   bool _hasTriggered = false;
 
   bool get hasTriggered => _hasTriggered;
@@ -17,11 +19,13 @@ class TriggerZone extends PositionComponent with CollisionCallbacks {
     this.targetHazardIds = const [],
     this.onTrigger,
     this.triggerOnce = true,
-  }) {
+    this.isEnabled = true,
+  }) : defaultEnabled = isEnabled {
     add(RectangleHitbox(collisionType: CollisionType.passive));
   }
 
   void activate() {
+    if (!isEnabled) return;
     if (triggerOnce && _hasTriggered) return;
     _hasTriggered = true;
     onTrigger?.call();
@@ -29,6 +33,7 @@ class TriggerZone extends PositionComponent with CollisionCallbacks {
 
   void reset() {
     _hasTriggered = false;
+    isEnabled = defaultEnabled;
   }
 
   @override
