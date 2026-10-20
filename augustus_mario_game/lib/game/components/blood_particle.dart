@@ -3,15 +3,36 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../game_constants.dart';
 
-/// Single stuck blood mark painted on a solid obstacle (floor, wall, ceiling)
+/// Single stuck blood mark painted on an obstacle (floor, wall, ceiling, platform)
 class StuckBloodSplat {
-  final Rect rect;
+  final PositionComponent? attachedTo;
+  final Vector2 localOffset;
+  final double width;
+  final double height;
   final Color color;
 
   const StuckBloodSplat({
-    required this.rect,
+    this.attachedTo,
+    required this.localOffset,
+    required this.width,
+    required this.height,
     required this.color,
   });
+
+  Offset get currentPosition {
+    if (attachedTo != null && attachedTo!.isMounted) {
+      return Offset(
+        attachedTo!.position.x + localOffset.x,
+        attachedTo!.position.y + localOffset.y,
+      );
+    }
+    return Offset(localOffset.x, localOffset.y);
+  }
+
+  Rect get renderRect {
+    final pos = currentPosition;
+    return Rect.fromLTWH(pos.dx, pos.dy, width, height);
+  }
 }
 
 /// Permanent decal layer that renders accumulated blood stains across deaths
@@ -21,10 +42,16 @@ class BloodDecalComponent extends Component {
   @override
   void render(Canvas canvas) {
     super.render(canvas);
+
+    // Prune splats that have plunged off-screen (e.g. falling into the abyss with a collapsing block)
+    BloodParticleSystem.persistentSplats.removeWhere((splat) {
+      return splat.currentPosition.dy > 650;
+    });
+
     final paint = Paint()..style = PaintingStyle.fill;
     for (final splat in BloodParticleSystem.persistentSplats) {
       paint.color = splat.color;
-      canvas.drawRect(splat.rect, paint);
+      canvas.drawRect(splat.renderRect, paint);
     }
   }
 }
@@ -54,7 +81,7 @@ class _RayHit {
 }
 
 /// System for simulating death blood fountain with continuous raycast collision
-/// against static platforms, walls, and floors.
+/// against platforms, walls, floors, and collapsing/moving blocks.
 class BloodParticleSystem extends PositionComponent {
   /// Persistent blood marks across deaths (retained until stage reload)
   static final List<StuckBloodSplat> persistentSplats = [];
@@ -71,15 +98,20 @@ class BloodParticleSystem extends PositionComponent {
     }
   }
 
+  /// Removes blood decals attached to a specific component (e.g. when a collapsed block resets after falling)
+  static void onBlockReset(PositionComponent comp) {
+    persistentSplats.removeWhere((s) => s.attachedTo == comp);
+  }
+
   final List<_BloodDrop> _particles = [];
-  final List<Rect> _obstacles;
+  final List<PositionComponent> _obstacles;
   final Random _rng = Random();
   double _lifeTimer = 0.0;
   static const double maxLifetime = GameConstants.bloodLifetime;
 
   BloodParticleSystem({
     required Vector2 origin,
-    List<Rect> obstacles = const [],
+    List<PositionComponent> obstacles = const [],
     int count = GameConstants.deathBloodParticleCount,
   })  : _obstacles = obstacles,
         super(position: Vector2.zero(), priority: 10) {
@@ -206,21 +238,24 @@ class BloodParticleSystem extends PositionComponent {
       p.velocity += gravity;
       final to = from + p.velocity * dt;
 
-      // Check raycast against static obstacles
+      // Check raycast against all platform components
       _RayHit? closestHit;
+      PositionComponent? closestComp;
       Rect? closestBox;
 
-      for (final box in _obstacles) {
+      for (final comp in _obstacles) {
+        final box = comp.toRect();
         final hit = _raycastAABB(from, to, box);
         if (hit != null) {
           if (closestHit == null || hit.t < closestHit.t) {
             closestHit = hit;
+            closestComp = comp;
             closestBox = box;
           }
         }
       }
 
-      if (closestHit != null && closestBox != null) {
+      if (closestHit != null && closestBox != null && closestComp != null) {
         // 80% stick as blood decals, 20% bounce off / disintegrate
         if (_rng.nextDouble() < 0.80) {
           final normal = closestHit.normal;
@@ -260,14 +295,20 @@ class BloodParticleSystem extends PositionComponent {
             splatY += (_rng.nextDouble() - 0.5) * 3.0;
           }
 
-          final splatRect = Rect.fromLTWH(
-            splatX.roundToDouble(),
-            splatY.roundToDouble(),
-            splatW,
-            splatH,
+          // Calculate local offset relative to component's current position
+          // This allows the blood to physically move and fall with collapsing/moving platforms!
+          final localOffset = Vector2(
+            splatX.roundToDouble() - closestComp.position.x,
+            splatY.roundToDouble() - closestComp.position.y,
           );
 
-          addStuckSplat(StuckBloodSplat(rect: splatRect, color: p.color));
+          addStuckSplat(StuckBloodSplat(
+            attachedTo: closestComp,
+            localOffset: localOffset,
+            width: splatW,
+            height: splatH,
+            color: p.color,
+          ));
         }
 
         // Particle done flying

@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'hazard_base.dart';
 import '../../game_constants.dart';
+import '../blood_particle.dart';
 
 class CollapsingBlock extends HazardBase {
   final Vector2 _initialPosition;
@@ -46,6 +47,9 @@ class CollapsingBlock extends HazardBase {
 
   @override
   void reset() {
+    if (_isFalling) {
+      BloodParticleSystem.onBlockReset(this);
+    }
     position.setFrom(_initialPosition);
     _isTriggered = false;
     _isFalling = false;

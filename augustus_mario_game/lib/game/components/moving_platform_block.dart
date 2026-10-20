@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'platform_block.dart';
+import 'blood_particle.dart';
 import '../game_constants.dart';
 import '../iwbtg_game.dart';
 
@@ -59,6 +60,9 @@ class MovingPlatformBlock extends PlatformBlock with HasGameReference<IWBTGGame>
   }
 
   void reset() {
+    if (_isFalling) {
+      BloodParticleSystem.onBlockReset(this);
+    }
     position.setFrom(initialPosition);
     _isMoving = false;
     _hasArrived = false;
