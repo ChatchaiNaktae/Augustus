@@ -22,6 +22,8 @@ class Stage3Leap extends StageBase {
   late final TurretHazard _machineGunTurret;
 
   final List<SpawnablePlatformBlock> _spawnedPlatforms = [];
+  final List<SpikeHazard> _trophyAmbushSpikes = [];
+  final List<TriggerZone> _trophyAmbushTriggers = [];
 
   Stage3Leap()
       : super(
@@ -122,15 +124,21 @@ class Stage3Leap extends StageBase {
       position: Vector2(550, 32),
       direction: SpikeDirection.down,
       triggerVelocity: Vector2(0, 1250),
+      isInitiallyDeadly: false,
+      isHidden: true,
       hazardId: "spike_altar_drop",
     );
     add(dropSpike);
+    _trophyAmbushSpikes.add(dropSpike);
 
-    add(TriggerZone(
+    final dropSpikeTrigger = TriggerZone(
       position: Vector2(545, 355),
       size: Vector2(18, 25),
+      isEnabled: false,
       onTrigger: () => dropSpike.trigger(),
-    ));
+    );
+    add(dropSpikeTrigger);
+    _trophyAmbushTriggers.add(dropSpikeTrigger);
 
     // Trap 3: The Ultimate Trophy Deception Spike!
     // Hidden underneath the altar floor (y=500); launches UP when player approaches in proximity
@@ -155,100 +163,142 @@ class Stage3Leap extends StageBase {
     // 4. Top-Right Sniper Hazard (Aiming Raycast Laser + Bullet every 3s)
     add(SniperHazard(position: Vector2(740, 65)));
 
-    // 5. Ambush Spikes (Ceiling drops & Wall surprise strikes)
+    // 5. Ambush Spikes (Ceiling drops & Wall surprise strikes - hidden until trophy moves to top-left)
     // 5.1 Ceiling Drop Spikes along the ceiling
     final spikeC1 = SpikeHazard(
       position: Vector2(425, 32),
       direction: SpikeDirection.down,
       triggerVelocity: Vector2(0, 1250),
+      isInitiallyDeadly: false,
+      isHidden: true,
       hazardId: "spike_ceiling_c1",
     );
     add(spikeC1);
-    add(TriggerZone(
+    _trophyAmbushSpikes.add(spikeC1);
+    final trigC1 = TriggerZone(
       position: Vector2(415, 64),
       size: Vector2(25, 240),
+      isEnabled: false,
       onTrigger: () => spikeC1.trigger(),
-    ));
+    );
+    add(trigC1);
+    _trophyAmbushTriggers.add(trigC1);
 
     final spikeC2 = SpikeHazard(
       position: Vector2(475, 32),
       direction: SpikeDirection.down,
       triggerVelocity: Vector2(0, 1250),
+      isInitiallyDeadly: false,
+      isHidden: true,
       hazardId: "spike_ceiling_c2",
     );
     add(spikeC2);
-    add(TriggerZone(
+    _trophyAmbushSpikes.add(spikeC2);
+    final trigC2 = TriggerZone(
       position: Vector2(465, 64),
       size: Vector2(25, 270),
+      isEnabled: false,
       onTrigger: () => spikeC2.trigger(),
-    ));
+    );
+    add(trigC2);
+    _trophyAmbushTriggers.add(trigC2);
 
     final spikeC3 = SpikeHazard(
       position: Vector2(515, 32),
       direction: SpikeDirection.down,
       triggerVelocity: Vector2(0, 1250),
+      isInitiallyDeadly: false,
+      isHidden: true,
       hazardId: "spike_ceiling_c3",
     );
     add(spikeC3);
-    add(TriggerZone(
+    _trophyAmbushSpikes.add(spikeC3);
+    final trigC3 = TriggerZone(
       position: Vector2(505, 64),
       size: Vector2(25, 300),
+      isEnabled: false,
       onTrigger: () => spikeC3.trigger(),
-    ));
+    );
+    add(trigC3);
+    _trophyAmbushTriggers.add(trigC3);
 
     final spikeC4 = SpikeHazard(
       position: Vector2(615, 32),
       direction: SpikeDirection.down,
       triggerVelocity: Vector2(0, 1250),
+      isInitiallyDeadly: false,
+      isHidden: true,
       hazardId: "spike_ceiling_c4",
     );
     add(spikeC4);
-    add(TriggerZone(
+    _trophyAmbushSpikes.add(spikeC4);
+    final trigC4 = TriggerZone(
       position: Vector2(605, 64),
       size: Vector2(25, 410),
+      isEnabled: false,
       onTrigger: () => spikeC4.trigger(),
-    ));
+    );
+    add(trigC4);
+    _trophyAmbushTriggers.add(trigC4);
 
     final spikeC5 = SpikeHazard(
       position: Vector2(655, 32),
       direction: SpikeDirection.down,
       triggerVelocity: Vector2(0, 1250),
+      isInitiallyDeadly: false,
+      isHidden: true,
       hazardId: "spike_ceiling_c5",
     );
     add(spikeC5);
-    add(TriggerZone(
+    _trophyAmbushSpikes.add(spikeC5);
+    final trigC5 = TriggerZone(
       position: Vector2(645, 64),
       size: Vector2(25, 410),
+      isEnabled: false,
       onTrigger: () => spikeC5.trigger(),
-    ));
+    );
+    add(trigC5);
+    _trophyAmbushTriggers.add(trigC5);
 
     // 5.2 Right Wall Ambush Spike (Shoots left when entering zone near altar)
     final rightWallSpike = SpikeHazard(
       position: Vector2(768, 470),
       direction: SpikeDirection.left,
       triggerVelocity: Vector2(-1300, 0),
+      isInitiallyDeadly: false,
+      isHidden: true,
       hazardId: "spike_right_wall_ambush",
     );
     add(rightWallSpike);
-    add(TriggerZone(
+    _trophyAmbushSpikes.add(rightWallSpike);
+    final trigRight = TriggerZone(
       position: Vector2(650, 440),
       size: Vector2(85, 60),
+      isEnabled: false,
       onTrigger: () => rightWallSpike.trigger(),
-    ));
+    );
+    add(trigRight);
+    _trophyAmbushTriggers.add(trigRight);
 
     // 5.3 Left Wall Ambush Spike (Shoots right when entering zone above high return platform)
     final leftWallSpike = SpikeHazard(
       position: Vector2(32, 190),
       direction: SpikeDirection.right,
       triggerVelocity: Vector2(1300, 0),
+      isInitiallyDeadly: false,
+      isHidden: true,
       hazardId: "spike_left_wall_ambush",
     );
     add(leftWallSpike);
-    add(TriggerZone(
+    _trophyAmbushSpikes.add(leftWallSpike);
+    final trigLeft = TriggerZone(
       position: Vector2(130, 150),
       size: Vector2(180, 50),
+      isEnabled: false,
       onTrigger: () => leftWallSpike.trigger(),
-    ));
+    );
+    add(trigLeft);
+    _trophyAmbushTriggers.add(trigLeft);
 
     // 6. Spawnable Platforms (Oscillating left & right)
     // 6.1 Blocking Platform (Spawns at bottom to block descent into the altar, oscillates horizontally)
@@ -338,6 +388,15 @@ class Stage3Leap extends StageBase {
 
     // Activate Machine Gun Turret on Platform 1
     _machineGunTurret.activateTurret();
+
+    // Reveal and arm all ambush spikes (Ceiling and Wall spikes)
+    for (final spike in _trophyAmbushSpikes) {
+      spike.isHidden = false;
+      spike.isDeadly = true;
+    }
+    for (final trigger in _trophyAmbushTriggers) {
+      trigger.isEnabled = true;
+    }
   }
 
   @override
@@ -352,6 +411,13 @@ class Stage3Leap extends StageBase {
       plat.deactivate();
     }
     _machineGunTurret.deactivateTurret();
+    for (final spike in _trophyAmbushSpikes) {
+      spike.isHidden = true;
+      spike.isDeadly = false;
+    }
+    for (final trigger in _trophyAmbushTriggers) {
+      trigger.isEnabled = false;
+    }
   }
 
   @override
