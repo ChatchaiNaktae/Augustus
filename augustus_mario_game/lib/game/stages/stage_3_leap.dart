@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'stage_base.dart';
 import '../game_constants.dart';
 import '../components/platform_block.dart';
+import '../components/rotating_platform_block.dart';
 import '../components/hazards/spike_hazard.dart';
 import '../components/hazards/collapsing_block.dart';
 import '../components/hazards/trigger_zone.dart';
@@ -55,8 +56,8 @@ class Stage3Leap extends StageBase {
     );
     add(collapse2);
 
-    // Mid-air resting platform
-    add(PlatformBlock(position: Vector2(400, 320), size: Vector2(80, 20)));
+    // Rotating Platform Block (90-degree clockwise vertical barrier triggered when stepped on)
+    add(RotatingPlatformBlock(position: Vector2(400, 320), size: Vector2(80, 20)));
 
     // Platform 4 before the leap
     add(PlatformBlock(position: Vector2(530, 380), size: Vector2(70, 20)));

@@ -248,6 +248,11 @@ class SniperHazard extends HazardBase {
     canvas.save();
     canvas.rotate(angle);
 
+    // If aiming leftwards, flip Y so the scope stays on TOP and magazine on BOTTOM
+    if (_aimDir.x < 0) {
+      canvas.scale(1.0, -1.0);
+    }
+
     // Stock (wooden/dark rear)
     final stockPaint = Paint()..color = const Color(0xFF5D4037);
     final stockPath = Path()
