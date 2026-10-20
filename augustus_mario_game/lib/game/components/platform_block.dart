@@ -7,6 +7,7 @@ class PlatformBlock extends PositionComponent with CollisionCallbacks {
   final Color fillColor;
   final Color borderColor;
   final bool isOneWay;
+  bool isSolid;
 
   PlatformBlock({
     required Vector2 position,
@@ -14,6 +15,7 @@ class PlatformBlock extends PositionComponent with CollisionCallbacks {
     this.fillColor = GameConstants.tileColor,
     this.borderColor = GameConstants.tileBorderColor,
     this.isOneWay = false,
+    this.isSolid = true,
     int? priority,
   }) : super(position: position, size: size, priority: priority) {
     add(RectangleHitbox(collisionType: CollisionType.passive));

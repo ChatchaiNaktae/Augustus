@@ -273,6 +273,7 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     position.x += velocity.x * dt;
 
     for (final block in blocks) {
+      if (!block.isSolid) continue;
       final blockRect = block.toRect();
       final playerRectX = toRect();
       if (!playerRectX.overlaps(blockRect)) continue;
@@ -334,6 +335,7 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
 
     // Check solid blocks
     for (final block in blocks) {
+      if (!block.isSolid) continue;
       final blockRect = block.toRect();
       final playerRectY = toRect();
       if (!playerRectY.overlaps(blockRect)) continue;

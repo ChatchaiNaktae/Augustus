@@ -79,12 +79,14 @@ class Stage2Spikes extends StageBase {
       onTrigger: () => hiddenLeftSpike.slideTo(208, speed: 100),
     ));
 
-    // Mid-height resting platform (Slides to x=460 when triggered mid-air)
+    // Mid-height resting platform (Slides to x=460 when triggered mid-air, crumbles after 3s standing)
     final midPlatform = MovingPlatformBlock(
       position: Vector2(400, 240),
       targetPosition: Vector2(460, 240),
       size: Vector2(100, 24),
       moveSpeed: 180,
+      collapseDelay: 3.0,
+      warningDuration: 1.0,
     );
     add(midPlatform);
 
@@ -96,7 +98,32 @@ class Stage2Spikes extends StageBase {
     add(fakePlatform);
 
     // High platforms leading to exit
-    add(PlatformBlock(position: Vector2(560, 200), size: Vector2(90, 24)));
+    // Platform 3 (priority 2 to conceal hidden left spike behind its left edge)
+    final platform3 = PlatformBlock(
+      position: Vector2(560, 200),
+      size: Vector2(90, 24),
+      priority: 2,
+    );
+    add(platform3);
+
+    // Trap 9 (Image 1 Req 1): Hidden Left Spike concealed behind Platform 3 (priority 1)
+    // When player approaches right edge of midPlatform, it slowly emerges 32px out to x=528
+    final hiddenLeftSpike2 = SpikeHazard(
+      position: Vector2(560, 200),
+      customSize: Vector2(32, 24),
+      direction: SpikeDirection.left,
+      isInitiallyDeadly: false,
+      priority: 1,
+      hazardId: "spike_hidden_left_2",
+    );
+    add(hiddenLeftSpike2);
+
+    // Trigger Zone: Catches player approaching right edge of midPlatform (purple/white box in Image)
+    add(TriggerZone(
+      position: Vector2(520, 190),
+      size: Vector2(35, 50),
+      onTrigger: () => hiddenLeftSpike2.slideTo(528, speed: 100),
+    ));
     add(PlatformBlock(position: Vector2(680, 140), size: Vector2(90, 24)));
 
     // 3. Handcrafted IWBTG Troll Traps (Point-Blank Proximity, Zero Overlap)!
