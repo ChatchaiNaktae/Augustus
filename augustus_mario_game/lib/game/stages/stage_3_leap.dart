@@ -4,7 +4,6 @@ import 'stage_base.dart';
 import '../game_constants.dart';
 import '../components/platform_block.dart';
 import '../components/hazards/spike_hazard.dart';
-import '../components/hazards/apple_hazard.dart';
 import '../components/hazards/collapsing_block.dart';
 import '../components/hazards/trigger_zone.dart';
 
@@ -75,21 +74,7 @@ class Stage3Leap extends StageBase {
       onTrigger: () => leapSpike1.trigger(),
     ));
 
-    // Trap 2: Ceiling Apple Drop timed with the collapsing platform!
-    final collapseApple = AppleHazard(
-      position: Vector2(320, 32),
-      behavior: AppleBehavior.fallDown,
-      hazardId: "apple_collapse_sniper",
-    );
-    add(collapseApple);
-
-    add(TriggerZone(
-      position: Vector2(305, 365),
-      size: Vector2(20, 25),
-      onTrigger: () => collapseApple.trigger(),
-    ));
-
-    // Trap 3: Ceiling Ambush Spike directly above Platform 4 (x: 545-565)
+    // Trap 2: Ceiling Ambush Spike directly above Platform 4 (x: 545-565)
     final dropSpike = SpikeHazard(
       position: Vector2(550, 32),
       direction: SpikeDirection.down,
