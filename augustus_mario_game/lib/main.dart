@@ -3,8 +3,11 @@ import 'package:flutter/services.dart';
 import 'screens/main_menu_screen.dart';
 import 'theme/retro_theme.dart';
 
+import 'services/storage_manager.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await StorageManager.instance.init();
 
   // Set landscape orientation for optimal retro gaming experience
   await SystemChrome.setPreferredOrientations([

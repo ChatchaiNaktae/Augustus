@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:augustus_mario_game/game/components/platform_block.dart';
@@ -16,6 +17,10 @@ Future<IWBTGGame> createTestGame() async {
 }
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Player Physics & Collision Tests', () {

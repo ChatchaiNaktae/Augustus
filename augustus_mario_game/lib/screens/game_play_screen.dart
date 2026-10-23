@@ -1,3 +1,4 @@
+import '../models/custom_stage_data.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,8 +10,9 @@ import 'select_stage_screen.dart';
 
 class GamePlayScreen extends StatefulWidget {
   final int initialStage;
+  final CustomStageData? customStageData;
 
-  const GamePlayScreen({super.key, this.initialStage = 1});
+  const GamePlayScreen({super.key, this.initialStage = 1, this.customStageData});
 
   @override
   State<GamePlayScreen> createState() => _GamePlayScreenState();
@@ -30,6 +32,7 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
     super.initState();
     _game = IWBTGGame(
       initialStage: widget.initialStage,
+      customStageData: widget.customStageData,
       onDeathsUpdated: (deaths) {
         if (mounted) setState(() => _deathCount = deaths);
       },

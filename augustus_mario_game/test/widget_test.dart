@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:augustus_mario_game/main.dart';
@@ -5,6 +6,10 @@ import 'package:augustus_mario_game/game/iwbtg_game.dart';
 import 'package:augustus_mario_game/game/ui/virtual_controls.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('App smoke test loads MainMenuScreen without overflow', (WidgetTester tester) async {
     await tester.pumpWidget(const IWBTGApp());
     expect(find.text('START GAME'), findsOneWidget);

@@ -1,3 +1,7 @@
+import 'stage_editor_screen.dart';
+import 'select_custom_stage_screen.dart';
+import 'character_editor_screen.dart';
+import 'career_stats_screen.dart';
 import 'package:flutter/material.dart';
 import '../theme/retro_theme.dart';
 import 'select_stage_screen.dart';
@@ -165,76 +169,172 @@ class MainMenuScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 48),
 
-                  // Menu Buttons
-                  RetroButton(
-                    label: "START GAME",
-                    icon: Icons.play_arrow_rounded,
-                    baseColor: RetroTheme.green,
-                    textColor: Colors.black,
-                    width: 280,
-                    height: 56,
-                    fontSize: 18,
-                    hasShadow: false,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const GamePlayScreen(initialStage: 1),
+                  // Menu Buttons in 2-Column Responsive Layout
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 580),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Column 1: Story & Gameplay
+                        Expanded(
+                          child: Column(
+                            children: [
+                              RetroButton(
+                                label: "START GAME",
+                                icon: Icons.play_arrow_rounded,
+                                baseColor: RetroTheme.green,
+                                textColor: Colors.black,
+                                width: double.infinity,
+                                height: 48,
+                                fontSize: 14,
+                                hasShadow: false,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const GamePlayScreen(initialStage: 1),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              RetroButton(
+                                label: "SELECT STAGE",
+                                icon: Icons.grid_view_rounded,
+                                baseColor: RetroTheme.accent,
+                                textColor: Colors.black,
+                                width: double.infinity,
+                                height: 48,
+                                fontSize: 14,
+                                hasShadow: false,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const SelectStageScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              RetroButton(
+                                label: "CUSTOM STAGES",
+                                icon: Icons.videogame_asset,
+                                baseColor: RetroTheme.yellow,
+                                textColor: Colors.black,
+                                width: double.infinity,
+                                height: 48,
+                                fontSize: 14,
+                                hasShadow: false,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const SelectCustomStageScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              RetroButton(
+                                label: "HOW TO PLAY",
+                                icon: Icons.help_outline_rounded,
+                                baseColor: RetroTheme.surfaceHighlight,
+                                textColor: RetroTheme.white,
+                                width: double.infinity,
+                                height: 48,
+                                fontSize: 14,
+                                hasShadow: false,
+                                onPressed: () => _showHowToPlay(context),
+                              ),
+                            ],
+                          ),
                         ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 18),
-
-                  RetroButton(
-                    label: "SELECT STAGE",
-                    icon: Icons.grid_view_rounded,
-                    baseColor: RetroTheme.accent,
-                    textColor: Colors.black,
-                    width: 280,
-                    height: 56,
-                    fontSize: 18,
-                    hasShadow: false,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SelectStageScreen(),
+                        const SizedBox(width: 14),
+                        // Column 2: Studio & Customization & Career
+                        Expanded(
+                          child: Column(
+                            children: [
+                              RetroButton(
+                                label: "STAGE EDITOR",
+                                icon: Icons.construction,
+                                baseColor: const Color(0xFF5E81AC),
+                                textColor: Colors.white,
+                                width: double.infinity,
+                                height: 48,
+                                fontSize: 14,
+                                hasShadow: false,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const StageEditorScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              RetroButton(
+                                label: "CHARACTER",
+                                icon: Icons.checkroom,
+                                baseColor: const Color(0xFFD08770),
+                                textColor: Colors.black,
+                                width: double.infinity,
+                                height: 48,
+                                fontSize: 14,
+                                hasShadow: false,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CharacterEditorScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              RetroButton(
+                                label: "CAREER STATS",
+                                icon: Icons.emoji_events,
+                                baseColor: const Color(0xFFB48EAD),
+                                textColor: Colors.white,
+                                width: double.infinity,
+                                height: 48,
+                                fontSize: 14,
+                                hasShadow: false,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CareerStatsScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              RetroButton(
+                                label: "ABOUT / ผู้จัดทำ",
+                                icon: Icons.info_outline_rounded,
+                                baseColor: RetroTheme.purple,
+                                textColor: Colors.white,
+                                width: double.infinity,
+                                height: 48,
+                                fontSize: 14,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const AboutScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 18),
-
-                  RetroButton(
-                    label: "HOW TO PLAY",
-                    icon: Icons.help_outline_rounded,
-                    baseColor: RetroTheme.yellow,
-                    textColor: Colors.black,
-                    width: 280,
-                    height: 56,
-                    fontSize: 18,
-                    hasShadow: false,
-                    onPressed: () => _showHowToPlay(context),
-                  ),
-                  const SizedBox(height: 18),
-
-                  RetroButton(
-                    label: "ABOUT / ผู้จัดทำ",
-                    icon: Icons.info_outline_rounded,
-                    baseColor: RetroTheme.purple,
-                    textColor: Colors.white,
-                    width: 280,
-                    height: 56,
-                    fontSize: 18,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AboutScreen(),
-                        ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 48),

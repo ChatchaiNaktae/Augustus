@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class RetroTheme {
   static const Color background = Color(0xFF0F111A);
   static const Color surface = Color(0xFF1E222D);
+  static const Color surfaceHighlight = Color(0xFF2C313C);
   static const Color primary = Color(0xFFE06C75);    // Retro Red
   static const Color accent = Color(0xFF61AFEF);     // Retro Blue
   static const Color yellow = Color(0xFFE5C07B);     // Retro Gold/Yellow
@@ -75,13 +76,14 @@ class RetroButton extends StatefulWidget {
     required this.onPressed,
     this.baseColor = RetroTheme.primary,
     this.textColor = Colors.white,
-    this.icon,
+    IconData? icon,
+    IconData? prefixIcon,
     this.width = 240,
     this.height = 54,
     this.fontSize = 16,
     this.hasShadow = true,
     this.hasTextShadow = false,
-  });
+  }) : icon = icon ?? prefixIcon;
 
   @override
   State<RetroButton> createState() => _RetroButtonState();

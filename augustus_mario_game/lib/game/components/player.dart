@@ -1,3 +1,5 @@
+import '../../models/player_customization.dart';
+import '../../services/storage_manager.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +28,7 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
   double _jumpBufferTimer = 0.0;
 
   final Vector2 respawnPosition;
+  PlayerCustomization customization;
 
   Rect get hitboxRect => Rect.fromLTWH(
         position.x + (GameConstants.playerWidth - GameConstants.playerHitboxWidth) / 2,
@@ -34,8 +37,9 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
         GameConstants.playerHitboxHeight,
       );
 
-  Player({required Vector2 initialPosition})
-      : respawnPosition = initialPosition.clone(),
+  Player({required Vector2 initialPosition, PlayerCustomization? customization})
+      : customization = customization ?? StorageManager.instance.getCustomization(),
+        respawnPosition = initialPosition.clone(),
         super(
           position: initialPosition,
           size: Vector2(GameConstants.playerWidth, GameConstants.playerHeight),
@@ -458,36 +462,98 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     }
 
     // Procedural Vector Fallback:
-    // Cape / Bow at the back
-    final capePaint = Paint()..color = const Color(0xFFE5E9F0);
-    final capePath = Path()
-      ..moveTo(2, 10)
-      ..lineTo(-5, 14)
-      ..lineTo(-3, 22)
-      ..lineTo(4, 18)
-      ..close();
-    canvas.drawPath(capePath, capePaint);
+    // Dynamic Procedural Player Rendering based on PlayerCustomization
+    final cust = customization;
 
-    // Blue Overalls / Body
-    final bodyPaint = Paint()..color = const Color(0xFF3B4252);
+    // Cape / Bow at the back
+    if (cust.capeEnabled) {
+      final capePaint = Paint()..color = cust.capeColorValue;
+      final capePath = Path()
+        ..moveTo(2, 10)
+        ..lineTo(-5, 14)
+        ..lineTo(-3, 22)
+        ..lineTo(4, 18)
+        ..close();
+      canvas.drawPath(capePath, capePaint);
+    }
+
+    // Overalls / Pants / Body
+    final bodyPaint = Paint()..color = cust.pantsColorValue;
     canvas.drawRect(const Rect.fromLTWH(4, 12, 14, 14), bodyPaint);
 
-    // Cute retro shirt
-    final shirtPaint = Paint()..color = const Color(0xFF81A1C1);
+    // Retro shirt
+    final shirtPaint = Paint()..color = cust.shirtColorValue;
     canvas.drawRect(const Rect.fromLTWH(5, 12, 12, 6), shirtPaint);
 
-    // Peach Skin Face
-    final facePaint = Paint()..color = const Color(0xFFF0C09E);
+    // Shoes
+    final shoesPaint = Paint()..color = cust.shoesColorValue;
+    canvas.drawRect(const Rect.fromLTWH(4, 24, 6, 2), shoesPaint);
+    canvas.drawRect(const Rect.fromLTWH(12, 24, 6, 2), shoesPaint);
+
+    // Skin Face
+    final facePaint = Paint()..color = cust.skinColorValue;
     canvas.drawRect(const Rect.fromLTWH(5, 4, 12, 9), facePaint);
+
+    // Hair
+    final hairPaint = Paint()..color = cust.hairColorValue;
+    switch (cust.hairStyle) {
+      case HairStyle.classic:
+        canvas.drawRect(const Rect.fromLTWH(3, 3, 5, 5), hairPaint);
+        break;
+      case HairStyle.spiky:
+        final spikePath = Path()
+          ..moveTo(3, 4)
+          ..lineTo(1, 1)
+          ..lineTo(5, 2)
+          ..lineTo(7, -1)
+          ..lineTo(9, 2)
+          ..close();
+        canvas.drawPath(spikePath, hairPaint);
+        canvas.drawRect(const Rect.fromLTWH(3, 3, 4, 6), hairPaint);
+        break;
+      case HairStyle.ponytail:
+        canvas.drawRect(const Rect.fromLTWH(3, 3, 5, 5), hairPaint);
+        canvas.drawRect(const Rect.fromLTWH(-1, 5, 4, 7), hairPaint);
+        break;
+      case HairStyle.bob:
+        canvas.drawRect(const Rect.fromLTWH(3, 3, 5, 8), hairPaint);
+        canvas.drawRect(const Rect.fromLTWH(14, 3, 4, 8), hairPaint);
+        break;
+      case HairStyle.bald:
+        break;
+    }
 
     // Cute Pixel Eye
     final eyePaint = Paint()..color = Colors.black;
     canvas.drawRect(const Rect.fromLTWH(12, 6, 2, 4), eyePaint);
 
-    // Red Cap
-    final hatPaint = Paint()..color = const Color(0xFFBF616A);
-    canvas.drawRect(const Rect.fromLTWH(3, 1, 15, 4), hatPaint);
-    canvas.drawRect(const Rect.fromLTWH(11, 4, 6, 2), hatPaint); // visor
+    // Hat / Headwear
+    final hatPaint = Paint()..color = cust.hatColorValue;
+    switch (cust.hatType) {
+      case HatType.cap:
+        canvas.drawRect(const Rect.fromLTWH(3, 1, 15, 4), hatPaint);
+        canvas.drawRect(const Rect.fromLTWH(11, 4, 6, 2), hatPaint); // visor
+        break;
+      case HatType.bandana:
+        canvas.drawRect(const Rect.fromLTWH(4, 2, 14, 3), hatPaint);
+        canvas.drawRect(const Rect.fromLTWH(1, 3, 3, 2), hatPaint); // knot
+        break;
+      case HatType.crown:
+        final crownPaint = Paint()..color = const Color(0xFFEBCB8B);
+        final crownPath = Path()
+          ..moveTo(3, 4)
+          ..lineTo(3, 0)
+          ..lineTo(6, 2)
+          ..lineTo(10, -1)
+          ..lineTo(14, 2)
+          ..lineTo(17, 0)
+          ..lineTo(17, 4)
+          ..close();
+        canvas.drawPath(crownPath, crownPaint);
+        break;
+      case HatType.none:
+        break;
+    }
 
     canvas.restore();
   }

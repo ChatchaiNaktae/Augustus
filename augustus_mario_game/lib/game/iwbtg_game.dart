@@ -1,3 +1,6 @@
+import 'stages/custom_stage_runner.dart';
+import '../models/custom_stage_data.dart';
+import '../services/storage_manager.dart';
 import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -14,6 +17,7 @@ import 'stages/stage_3_leap.dart';
 
 class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   final int initialStage;
+  final CustomStageData? customStageData;
   final void Function(int deaths)? onDeathsUpdated;
   final void Function(int stage, String name)? onStageUpdated;
   final VoidCallback? onVictoryTriggered;
@@ -35,6 +39,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
 
   IWBTGGame({
     this.initialStage = 1,
+    this.customStageData,
     this.onDeathsUpdated,
     this.onStageUpdated,
     this.onVictoryTriggered,
@@ -55,7 +60,32 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
     camera.viewfinder.anchor = Anchor.topLeft;
     camera.viewfinder.position = Vector2.zero();
 
-    await loadStage(currentStageIndex);
+    if (customStageData != null) {
+      await loadCustomStage(customStageData!);
+    } else {
+      await loadStage(currentStageIndex);
+    }
+  }
+
+  Future<void> loadCustomStage(CustomStageData data) async {
+    currentStageIndex = 999;
+    player?.removeFromParent();
+    currentStage?.removeFromParent();
+
+    world.children.whereType<BloodParticleSystem>().toList().forEach((b) => b.removeFromParent());
+    world.children.whereType<BloodDecalComponent>().toList().forEach((b) => b.removeFromParent());
+    BloodParticleSystem.clearPersistentSplats();
+
+    currentStage = CustomStageRunner(stageData: data);
+    await world.add(currentStage!);
+    await world.add(BloodDecalComponent());
+
+    player = Player(initialPosition: currentStage!.defaultSpawnPosition);
+    await world.add(player!);
+
+    onPlayerStateChanged?.call(false);
+    onStageUpdated?.call(currentStageIndex, currentStage!.stageName);
+    onPlayerRespawned?.call();
   }
 
   Future<void> loadStage(int stageNumber) async {
@@ -99,6 +129,7 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
 
   void onPlayerDied() {
     deathCount++;
+    StorageManager.instance.recordDeath('stage_');
     onDeathsUpdated?.call(deathCount);
     onPlayerStateChanged?.call(true);
   }
@@ -123,7 +154,8 @@ class IWBTGGame extends FlameGame with HasCollisionDetection, KeyboardEvents {
   }
 
   void onStageCleared(int fromStage) {
-    if (fromStage < 3) {
+    StorageManager.instance.recordClear('stage_', stageDeaths: deathCount);
+    if (fromStage < 3 && customStageData == null) {
       loadStage(fromStage + 1);
     } else {
       onVictory();
