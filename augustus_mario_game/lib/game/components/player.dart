@@ -1,3 +1,4 @@
+import 'dart:math';
 import '../../models/player_customization.dart';
 import '../../services/storage_manager.dart';
 import 'package:flame/collisions.dart';
@@ -25,6 +26,7 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
 
   // Coyote time & Jump buffer
   double _coyoteTimer = 0.0;
+  double _animTimer = 0.0;
   double _jumpBufferTimer = 0.0;
 
   final Vector2 respawnPosition;
@@ -153,6 +155,14 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
 
     // Clamp dt to avoid tunneling during lag spikes or initial frame
     final clampedDt = dt.clamp(0.0, 0.033);
+
+    if (isOnGround && velocity.x.abs() > 10) {
+      _animTimer += dt * 14.0;
+    } else if (!isOnGround) {
+      _animTimer += dt * 8.0;
+    } else {
+      _animTimer = 0.0;
+    }
 
     // Sub-step physics if dt is large enough to ensure collision precision
     if (clampedDt > 0.016) {
@@ -468,10 +478,14 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
     // Cape / Bow at the back
     if (cust.capeEnabled) {
       final capePaint = Paint()..color = cust.capeColorValue;
+      final bool isRunning = isOnGround && velocity.x.abs() > 10;
+      final double flap = !isOnGround
+          ? 3.0
+          : (isRunning ? (sin(_animTimer) * 2.0).abs() : 0.0);
       final capePath = Path()
         ..moveTo(2, 10)
-        ..lineTo(-5, 14)
-        ..lineTo(-3, 22)
+        ..lineTo(-5 - flap, 14)
+        ..lineTo(-3 - flap, 22)
         ..lineTo(4, 18)
         ..close();
       canvas.drawPath(capePath, capePaint);
@@ -487,8 +501,14 @@ class Player extends PositionComponent with CollisionCallbacks, HasGameReference
 
     // Shoes
     final shoesPaint = Paint()..color = cust.shoesColorValue;
-    canvas.drawRect(const Rect.fromLTWH(4, 24, 6, 2), shoesPaint);
-    canvas.drawRect(const Rect.fromLTWH(12, 24, 6, 2), shoesPaint);
+    if (isOnGround && velocity.x.abs() > 10) {
+      final legOffset = (sin(_animTimer) * 2.0).roundToDouble();
+      canvas.drawRect(Rect.fromLTWH(4, 24 - legOffset, 6, 2), shoesPaint);
+      canvas.drawRect(Rect.fromLTWH(12, 24 + legOffset, 6, 2), shoesPaint);
+    } else {
+      canvas.drawRect(const Rect.fromLTWH(4, 24, 6, 2), shoesPaint);
+      canvas.drawRect(const Rect.fromLTWH(12, 24, 6, 2), shoesPaint);
+    }
 
     // Skin Face
     final facePaint = Paint()..color = cust.skinColorValue;
