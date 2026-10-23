@@ -20,7 +20,7 @@ class SpawnablePlatformBlock extends PlatformBlock with HasGameReference<IWBTGGa
   static const double spawnAnimDuration = 0.30;
 
   SpawnablePlatformBlock({
-    required Vector2 position,
+    required super.position,
     required super.size,
     this.isOscillating = false,
     double? minX,
@@ -31,8 +31,7 @@ class SpawnablePlatformBlock extends PlatformBlock with HasGameReference<IWBTGGa
     super.priority,
   })  : initialPosition = position.clone(),
         minX = minX ?? position.x,
-        maxX = maxX ?? position.x,
-        super(position: position) {
+        maxX = maxX ?? position.x {
     isSolid = false;
   }
 

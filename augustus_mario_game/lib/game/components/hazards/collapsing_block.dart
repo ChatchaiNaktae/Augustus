@@ -20,19 +20,13 @@ class CollapsingBlock extends HazardBase {
   bool get isWarning => _isTriggered && !_isFalling && _timer >= (collapseDelay - warningDuration);
 
   CollapsingBlock({
-    required Vector2 position,
-    required Vector2 size,
+    required super.position,
+    required super.size,
     this.collapseDelay = 0.20,
     this.warningDuration = 0.20,
-    String hazardId = '',
-    int? priority,
-  })  : _initialPosition = position.clone(),
-        super(
-          position: position,
-          size: size,
-          hazardId: hazardId,
-          priority: priority,
-        ) {
+    super.hazardId,
+    super.priority,
+  })  : _initialPosition = position.clone() {
     isDeadly = false; // Collapsing blocks crumble and fall; they do not kill the player directly
     add(RectangleHitbox());
   }

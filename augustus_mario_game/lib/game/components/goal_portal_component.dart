@@ -2,11 +2,13 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../iwbtg_game.dart';
+import '../utils/game_asset_loader.dart';
 import 'player.dart';
 
 class GoalPortalComponent extends PositionComponent
     with CollisionCallbacks, HasGameReference<IWBTGGame> {
   final VoidCallback? onCleared;
+  Sprite? _sprite;
 
   GoalPortalComponent({
     required Vector2 position,
@@ -18,6 +20,12 @@ class GoalPortalComponent extends PositionComponent
           anchor: Anchor.topLeft,
         ) {
     add(RectangleHitbox());
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    _sprite = await GameAssetLoader.loadOptionalSprite('items/goal_portal.png');
   }
 
   @override
@@ -35,6 +43,11 @@ class GoalPortalComponent extends PositionComponent
   @override
   void render(Canvas canvas) {
     super.render(canvas);
+
+    if (_sprite != null) {
+      _sprite!.render(canvas, size: size);
+      return;
+    }
 
     // Glowing retro portal
     final portalPaint = Paint()

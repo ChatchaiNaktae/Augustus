@@ -2,11 +2,13 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../iwbtg_game.dart';
+import '../utils/game_asset_loader.dart';
 import 'player.dart';
 
 class SavePointComponent extends PositionComponent
     with CollisionCallbacks, HasGameReference<IWBTGGame> {
   bool isActivated = false;
+  Sprite? _sprite;
 
   SavePointComponent({required Vector2 position, Vector2? size})
       : super(
@@ -15,6 +17,12 @@ class SavePointComponent extends PositionComponent
           anchor: Anchor.topLeft,
         ) {
     add(RectangleHitbox());
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    _sprite = await GameAssetLoader.loadOptionalSprite('items/save_point.png');
   }
 
   void activate(Player player) {
@@ -38,6 +46,28 @@ class SavePointComponent extends PositionComponent
   @override
   void render(Canvas canvas) {
     super.render(canvas);
+
+    if (_sprite != null) {
+      _sprite!.render(canvas, size: size);
+      if (isActivated) {
+        final glowPaint = Paint()
+          ..color = const Color(0xFFA3BE8C).withValues(alpha: 0.35)
+          ..style = PaintingStyle.fill;
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, width, height), const Radius.circular(4)),
+          glowPaint,
+        );
+        final borderPaint = Paint()
+          ..color = const Color(0xFFA3BE8C)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, width, height), const Radius.circular(4)),
+          borderPaint,
+        );
+      }
+      return;
+    }
 
     final bgPaint = Paint()
       ..color = isActivated ? const Color(0xFFA3BE8C) : const Color(0xFFBF616A);

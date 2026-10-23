@@ -83,12 +83,10 @@ class TurretHazard extends HazardBase {
   Vector2 get currentShootDirection => Vector2(cos(_currentAimAngle), sin(_currentAimAngle));
 
   TurretHazard({
-    required Vector2 position,
-    String hazardId = "machine_gun_turret",
+    required super.position,
+    super.hazardId = "machine_gun_turret",
   }) : super(
-          position: position,
           size: Vector2(26, 22),
-          hazardId: hazardId,
           priority: 8,
         ) {
     isDeadly = false; // Bullets are deadly; base turret body is non-deadly obstacle

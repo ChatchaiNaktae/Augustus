@@ -27,9 +27,8 @@ class SniperHazard extends HazardBase {
   final Random _rng = Random();
 
   SniperHazard({
-    required Vector2 position,
+    required super.position,
   }) : super(
-          position: position,
           size: Vector2(40, 20),
           hazardId: 'sniper_hazard',
           priority: 8,

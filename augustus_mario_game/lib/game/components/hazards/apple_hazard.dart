@@ -24,18 +24,15 @@ class AppleHazard extends HazardBase {
   double _gravity = 0;
 
   AppleHazard({
-    required Vector2 position,
+    required super.position,
     this.behavior = AppleBehavior.staticItem,
     this.customLaunchVelocity,
-    String hazardId = '',
+    super.hazardId,
     double radius = 12.0,
-    int? priority,
+    super.priority,
   })  : _initialPosition = position.clone(),
         super(
-          position: position,
           size: Vector2.all(radius * 2),
-          hazardId: hazardId,
-          priority: priority,
         ) {
     add(CircleHitbox(radius: radius - 1));
   }

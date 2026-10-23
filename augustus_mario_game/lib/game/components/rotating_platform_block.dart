@@ -1,9 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:flame/components.dart';
-import 'package:flutter/material.dart';
 import 'platform_block.dart';
-import '../game_constants.dart';
 import '../iwbtg_game.dart';
 
 /// Platform that rotates 90 degrees clockwise into a vertical wall/pillar
@@ -22,22 +20,15 @@ class RotatingPlatformBlock extends PlatformBlock with HasGameReference<IWBTGGam
   bool get isRotated => _isRotated;
 
   RotatingPlatformBlock({
-    required Vector2 position,
-    required Vector2 size,
-    Color fillColor = GameConstants.tileColor,
-    Color borderColor = GameConstants.tileBorderColor,
-    int? priority,
+    required super.position,
+    required super.size,
+    super.fillColor,
+    super.borderColor,
+    super.priority,
   })  : initialPos = position.clone(),
         horizontalSize = size.clone(),
         verticalSize = Vector2(size.y, size.x),
-        pivotCenter = Vector2(position.x + size.x / 2, position.y + size.y / 2),
-        super(
-          position: position,
-          size: size,
-          fillColor: fillColor,
-          borderColor: borderColor,
-          priority: priority,
-        );
+        pivotCenter = Vector2(position.x + size.x / 2, position.y + size.y / 2);
 
   void trigger() {
     if (!_isTriggered) {

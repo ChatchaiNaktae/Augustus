@@ -2,28 +2,52 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../game_constants.dart';
+import '../utils/game_asset_loader.dart';
 
 class PlatformBlock extends PositionComponent with CollisionCallbacks {
   final Color fillColor;
   final Color borderColor;
   final bool isOneWay;
   bool isSolid;
+  Sprite? _sprite;
 
   PlatformBlock({
-    required Vector2 position,
-    required Vector2 size,
+    required Vector2 super.position,
+    required Vector2 super.size,
     this.fillColor = GameConstants.tileColor,
     this.borderColor = GameConstants.tileBorderColor,
     this.isOneWay = false,
     this.isSolid = true,
-    int? priority,
-  }) : super(position: position, size: size, priority: priority) {
+    super.priority,
+  }) {
     add(RectangleHitbox(collisionType: CollisionType.passive));
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    _sprite = await GameAssetLoader.loadOptionalSprite('tiles/tile_block.png');
   }
 
   @override
   void render(Canvas canvas) {
     super.render(canvas);
+
+    if (_sprite != null) {
+      canvas.save();
+      canvas.clipRect(Rect.fromLTWH(0, 0, width, height));
+      for (double x = 0; x < width; x += 32) {
+        for (double y = 0; y < height; y += 32) {
+          _sprite!.render(
+            canvas,
+            position: Vector2(x, y),
+            size: Vector2(32, 32),
+          );
+        }
+      }
+      canvas.restore();
+      return;
+    }
 
     // Draw solid base
     final paint = Paint()..color = fillColor;

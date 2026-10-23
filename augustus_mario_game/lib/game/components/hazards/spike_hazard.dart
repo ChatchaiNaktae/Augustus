@@ -24,25 +24,22 @@ class SpikeHazard extends HazardBase {
   final bool isInitiallyDeadly;
 
   SpikeHazard({
-    required Vector2 position,
+    required super.position,
     this.direction = SpikeDirection.up,
     this.triggerVelocity,
     this.isTriggered = false,
     this.stopAtX,
     this.isHidden = false,
     this.isInitiallyDeadly = true,
-    String hazardId = '',
-    int? priority,
+    super.hazardId,
+    super.priority,
     double size = 32.0,
     Vector2? customSize,
   })  : _initialPosition = position.clone(),
         _initialHidden = isHidden,
         _stopAtX = stopAtX,
         super(
-          position: position,
           size: customSize ?? Vector2.all(size),
-          hazardId: hazardId,
-          priority: priority,
         ) {
     if (isHidden || !isInitiallyDeadly) {
       isDeadly = false;

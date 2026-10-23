@@ -3,7 +3,6 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'platform_block.dart';
 import 'blood_particle.dart';
-import '../game_constants.dart';
 import '../iwbtg_game.dart';
 
 class MovingPlatformBlock extends PlatformBlock with HasGameReference<IWBTGGame> {
@@ -32,26 +31,18 @@ class MovingPlatformBlock extends PlatformBlock with HasGameReference<IWBTGGame>
       _standingTimer >= (collapseDelay! - warningDuration);
 
   MovingPlatformBlock({
-    required Vector2 position,
+    required super.position,
     required Vector2 targetPosition,
-    required Vector2 size,
+    required super.size,
     this.moveSpeed = 180.0,
     this.collapseDelay,
     this.warningDuration = 1.0,
-    Color fillColor = GameConstants.tileColor,
-    Color borderColor = GameConstants.tileBorderColor,
-    bool isOneWay = false,
-    int? priority,
+    super.fillColor,
+    super.borderColor,
+    super.isOneWay,
+    super.priority,
   })  : initialPosition = position.clone(),
-        targetPosition = targetPosition.clone(),
-        super(
-          position: position,
-          size: size,
-          fillColor: fillColor,
-          borderColor: borderColor,
-          isOneWay: isOneWay,
-          priority: priority,
-        );
+        targetPosition = targetPosition.clone();
 
   void startMoving() {
     if (!_hasArrived) {
